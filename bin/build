@@ -1,0 +1,14 @@
+#!/usr/bin/env bash
+
+# https://stackoverflow.com/a/246128/715866
+DIR_SCRIPT=$(cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd)
+DIR_SRC=$DIR_SCRIPT/../src
+DIR_DIST=$DIR_SCRIPT/../dist
+
+# --parents suppresses a warning if the directory already exists.
+mkdir --parents "$DIR_DIST"
+
+for BOOKMARKLET in "$DIR_SRC"/*; do
+  BOOKMARKLET_BASENAME=$(basename "$BOOKMARKLET")
+  npx bookmarklet "$BOOKMARKLET" "$DIR_DIST/$BOOKMARKLET_BASENAME"
+done

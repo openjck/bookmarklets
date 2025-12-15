@@ -1,0 +1,9 @@
+{
+  "name": "bookmarklets",
+  "scripts": {
+    "build": "./bin/build"
+  },
+  "dependencies": {
+    "bookmarklet": "^3.0.0"
+  }
+}
