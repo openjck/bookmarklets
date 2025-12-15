@@ -1,7 +1,17 @@
 #!/usr/bin/env bash
 
+##
+# Use the "bookmarklet" npm package to build all bookmarklets.
+#
+# bookmarklet also has a JavaScript API, but it's more verbose and perhaps a bit
+# more prone to changing than this CLI, so this is probably easier and more
+# future-proof.
+
+# Get the directory that this script is in.
+#
 # https://stackoverflow.com/a/246128/715866
 DIR_SCRIPT=$(cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd)
+
 DIR_SRC=$DIR_SCRIPT/../src
 DIR_DIST=$DIR_SCRIPT/../dist
 
