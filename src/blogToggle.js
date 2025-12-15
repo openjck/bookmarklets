@@ -20,8 +20,8 @@ function navigate({ from, to }) {
 }
 
 const paths = {
-  writeAs: 'https://write.as/johnkarahalis/',
-  johnKarahalis: 'https://blog.johnkarahalis.com/',
+  writeAs: "https://write.as/johnkarahalis/",
+  johnKarahalis: "https://blog.johnkarahalis.com/",
 };
 
 if (at(paths.writeAs)) {
@@ -31,6 +31,6 @@ if (at(paths.writeAs)) {
 } else {
   alert(
     `There's nothing to do, because you're on neither "${paths.writeAs}" nor ` +
-    `"${paths.johnKarahalis}".`
+      `"${paths.johnKarahalis}".`,
   );
 }
