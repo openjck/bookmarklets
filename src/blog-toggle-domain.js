@@ -16,19 +16,25 @@ try {
     return document.URL.includes(url);
   }
 
-  function navigate({ from, to }) {
-    window.location.href = document.URL.replace(from, to);
-  }
-
   const paths = {
     writeAs: "https://write.as/johnkarahalis/",
     johnKarahalis: "https://blog.johnkarahalis.com/",
   };
 
   if (at(paths.writeAs)) {
-    navigate({ from: paths.writeAs, to: paths.johnKarahalis });
+    // Edit pages cannot be loaded on blog.johnkarahalis.com, so in addition to
+    // changing the domain, remove /edit from the URL. That way, if we started
+    // out on an edit page of Write.as, we end up on the corresponding non-edit
+    // page of blog.johnkarahalis.com.
+    window.location.href = document.URL.replace(
+      paths.writeAs,
+      paths.johnKarahalis,
+    ).replace(/\/edit$/, "");
   } else if (at(paths.johnKarahalis)) {
-    navigate({ from: paths.johnKarahalis, to: paths.writeAs });
+    window.location.href = document.URL.replace(
+      paths.johnKarahalis,
+      paths.writeAs,
+    );
   } else {
     throw new Error(`Not at "${paths.writeAs}" or "${paths.johnKarahalis}".`);
   }
