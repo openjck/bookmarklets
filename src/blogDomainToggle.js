@@ -11,26 +11,27 @@
  * domain, and vice versa.
  */
 
-function at(url) {
-  return document.URL.includes(url);
-}
+try {
+  function at(url) {
+    return document.URL.includes(url);
+  }
 
-function navigate({ from, to }) {
-  window.location.href = document.URL.replace(from, to);
-}
+  function navigate({ from, to }) {
+    window.location.href = document.URL.replace(from, to);
+  }
 
-const paths = {
-  writeAs: "https://write.as/johnkarahalis/",
-  johnKarahalis: "https://blog.johnkarahalis.com/",
-};
+  const paths = {
+    writeAs: "https://write.as/johnkarahalis/",
+    johnKarahalis: "https://blog.johnkarahalis.com/",
+  };
 
-if (at(paths.writeAs)) {
-  navigate({ from: paths.writeAs, to: paths.johnKarahalis });
-} else if (at(paths.johnKarahalis)) {
-  navigate({ from: paths.johnKarahalis, to: paths.writeAs });
-} else {
-  alert(
-    `There's nothing to do, because you're on neither "${paths.writeAs}" nor ` +
-      `"${paths.johnKarahalis}".`,
-  );
+  if (at(paths.writeAs)) {
+    navigate({ from: paths.writeAs, to: paths.johnKarahalis });
+  } else if (at(paths.johnKarahalis)) {
+    navigate({ from: paths.johnKarahalis, to: paths.writeAs });
+  } else {
+    throw new Error(`Not at "${paths.writeAs}" or "${paths.johnKarahalis}".`);
+  }
+} catch (err) {
+  alert(err.toString());
 }
