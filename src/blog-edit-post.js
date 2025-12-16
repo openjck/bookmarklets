@@ -3,6 +3,8 @@
  */
 
 try {
+  const pathname = window.location.pathname;
+
   function at(url) {
     return document.URL.includes(url);
   }
@@ -11,6 +13,20 @@ try {
     writeAs: "https://write.as/johnkarahalis/",
     johnKarahalis: "https://blog.johnkarahalis.com/",
   };
+
+  if (pathname.endsWith("/edit")) {
+    throw new Error("You are already on the edit page.");
+  }
+
+  if (
+    pathname === "/" ||
+    pathname.startsWith("/page/") ||
+    pathname === "/johnkarahalis/" ||
+    pathname.startsWith("/johnkarahalis/page/") ||
+    pathname.startsWith("/me/")
+  ) {
+    throw new Error("This page cannot be edited.");
+  }
 
   if (at(paths.johnKarahalis)) {
     window.location.href =
