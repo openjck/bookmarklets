@@ -13,9 +13,8 @@ const dirs = {
   dist: path.join(__dirname, "../dist"),
 };
 
-// Like the "--parents" or "-p" flag to the mkdir Unix command,
-// { recursive: true } suppresses a warning if the directory already exists.
-fs.mkdirSync(dirs.dist, { recursive: true });
+fs.rmSync(dirs.dist, { recursive: true, force: true });
+fs.mkdirSync(dirs.dist);
 
 const sourceFiles = fs
   .readdirSync(dirs.src, { withFileTypes: true })
