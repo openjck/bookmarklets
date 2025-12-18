@@ -20,13 +20,17 @@
  *    to delete the old ones. If there are, raise a warning with alert(),
  *    saying that the user should remove the old tags and use the keystroke
  *    again. Once there are not two rows of tags, continue.
+ * 9. Publish (save) the page. NOTE: If there have been no changes to any text
+ *    on the page, the "Publish" button will not be clickable. In that case, we
+ *    should navigate to the view page (remove "/edit") but **still** proceed
+ *    with the following steps.
  * 7. Generate a new candidate slug, using the algorithm in the
  *    blog-title-to-slug bookmarklet.
  * 8. **If the new slug would be different**, prompt the user (with
  *    window.confirm) to show them how many viewers there have been, what the
  *    old slug is, and what the new slug would be, asking whether they want the
- *    slug to be changed.
- * 9. Publish (save) the page.
+ *    slug to be changed. If the new slug is the same as the old slug, raise an
+ *    alert() saying that.
  * 10. If the user wanted the slug to be changed, visit the meta page (append
  *     "/edit/meta"), modify the slug, and save the form. Then, navigate to the
  *     view of the page (remove "/edit/meta").
