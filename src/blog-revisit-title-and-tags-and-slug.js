@@ -1,5 +1,5 @@
 /**
- * This is a work in progress. As you can see, it is only an English description
+ * This is a work in progress. As you can see, it's only an English description
  * of the algorithm at the moment.
  *
  * Purpose: Revisit and potentially change the title, tags, and slug of a single
@@ -23,13 +23,13 @@
  *    to delete the old ones. If there are, raise a warning with alert(),
  *    saying that the user should remove the old tags and use the keystroke
  *    again. Once there are not two rows of tags, continue.
- * 9. Publish (save) the page. NOTE: If there have been no changes to any text
+ * 7. Publish (save) the page. NOTE: If there have been no changes to any text
  *    on the page, the "Publish" button will not be clickable. In that case, we
  *    should navigate to the view page (remove "/edit") but **still** proceed
  *    with the following steps.
- * 7. Generate a new candidate slug, using the algorithm in the
+ * 8. Generate a new candidate slug, using the algorithm in the
  *    blog-title-to-slug bookmarklet.
- * 8. **If the new slug would be different**, prompt the user (with
+ * 9. **If the new slug would be different**, prompt the user (with
  *    window.confirm) to show them how many viewers there have been, what the
  *    old slug is, and what the new slug would be, asking whether they want the
  *    slug to be changed. If the new slug is the same as the old slug, raise an
