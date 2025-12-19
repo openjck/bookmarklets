@@ -2,17 +2,12 @@
  * Edit the current blog post, regardless of what domain is currently loaded.
  */
 
+import * as blog from "./utils/blog";
+
+import { at } from "./utils/navigation";
+
 try {
   const pathname = window.location.pathname;
-
-  function at(url) {
-    return document.URL.includes(url);
-  }
-
-  const paths = {
-    writeAs: "https://write.as/johnkarahalis/",
-    johnKarahalis: "https://blog.johnkarahalis.com/",
-  };
 
   if (pathname.endsWith("/edit")) {
     throw new Error("You are already on the edit page.");
@@ -28,13 +23,16 @@ try {
     throw new Error("This page cannot be edited.");
   }
 
-  if (at(paths.johnKarahalis)) {
+  if (at(blog.paths.johnKarahalis)) {
     window.location.href =
-      document.URL.replace(paths.johnKarahalis, paths.writeAs) + "/edit";
-  } else if (at(paths.writeAs)) {
+      document.URL.replace(blog.paths.johnKarahalis, blog.paths.writeAs) +
+      "/edit";
+  } else if (at(blog.paths.writeAs)) {
     window.location.href += "/edit";
   } else {
-    throw new Error(`Not at "${paths.writeAs}" or "${paths.johnKarahalis}".`);
+    throw new Error(
+      `Not at "${blog.paths.writeAs}" or "${blog.paths.johnKarahalis}".`,
+    );
   }
 } catch (err) {
   alert(err.toString());

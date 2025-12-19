@@ -11,32 +11,29 @@
  * domain, and vice versa.
  */
 
+import * as blog from "./utils/blog";
+
+import { at } from "./utils/navigation";
+
 try {
-  function at(url) {
-    return document.URL.includes(url);
-  }
-
-  const paths = {
-    writeAs: "https://write.as/johnkarahalis/",
-    johnKarahalis: "https://blog.johnkarahalis.com/",
-  };
-
-  if (at(paths.writeAs)) {
+  if (at(blog.paths.writeAs)) {
     // Edit pages cannot be loaded on blog.johnkarahalis.com, so in addition to
     // changing the domain, remove /edit from the URL. That way, if we started
     // out on an edit page of Write.as, we end up on the corresponding non-edit
     // page of blog.johnkarahalis.com.
     window.location.href = document.URL.replace(
-      paths.writeAs,
-      paths.johnKarahalis,
+      blog.paths.writeAs,
+      blog.paths.johnKarahalis,
     ).replace(/\/edit$/, "");
-  } else if (at(paths.johnKarahalis)) {
+  } else if (at(blog.paths.johnKarahalis)) {
     window.location.href = document.URL.replace(
-      paths.johnKarahalis,
-      paths.writeAs,
+      blog.paths.johnKarahalis,
+      blog.paths.writeAs,
     );
   } else {
-    throw new Error(`Not at "${paths.writeAs}" or "${paths.johnKarahalis}".`);
+    throw new Error(
+      `Not at "${blog.paths.writeAs}" or "${blog.paths.johnKarahalis}".`,
+    );
   }
 } catch (err) {
   alert(err.toString());

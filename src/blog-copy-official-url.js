@@ -3,26 +3,24 @@
  * clipboard.
  */
 
+import * as blog from "./utils/blog";
+import * as clipboard from "./utils/clipboard";
+
+import { at } from "./utils/navigation";
+
 try {
-  function at(url) {
-    return document.URL.includes(url);
-  }
-
-  const paths = {
-    writeAs: "https://write.as/johnkarahalis/",
-    johnKarahalis: "https://blog.johnkarahalis.com/",
-  };
-
   let url;
-  if (at(paths.writeAs)) {
-    url = document.URL.replace(paths.writeAs, paths.johnKarahalis);
-  } else if (at(paths.johnKarahalis)) {
+  if (at(blog.paths.writeAs)) {
+    url = document.URL.replace(blog.paths.writeAs, blog.paths.johnKarahalis);
+  } else if (at(blog.paths.johnKarahalis)) {
     url = document.URL;
   } else {
-    throw new Error(`Not at "${paths.writeAs}" or "${paths.johnKarahalis}".`);
+    throw new Error(
+      `Not at "${blog.paths.writeAs}" or "${blog.paths.johnKarahalis}".`,
+    );
   }
 
-  navigator.clipboard.writeText(url);
+  clipboard.write(url);
   alert(`Official URL successfully copied to clipboard. The URL is:\n\n${url}`);
 } catch (err) {
   alert(err.toString());
