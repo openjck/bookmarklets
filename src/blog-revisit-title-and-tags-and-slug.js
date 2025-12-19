@@ -1,4 +1,7 @@
 /**
+ * This is a work in progress. As you can see, it is only an English description
+ * of the algorithm at the moment.
+ *
  * Purpose: Revisit and potentially change the title, tags, and slug of a single
  * blog post. I want to do this because I only really got into the habit of
  * using a title halfway through the thoughts migration, and I changed the tags
