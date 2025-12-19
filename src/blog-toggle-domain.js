@@ -13,7 +13,7 @@
 
 import * as blog from "./utils/blog";
 
-import { at } from "./utils/navigation";
+import { at, navigate } from "./utils/navigation";
 
 try {
   if (at(blog.paths.writeAs)) {
@@ -21,14 +21,15 @@ try {
     // changing the domain, remove /edit from the URL. That way, if we started
     // out on an edit page of Write.as, we end up on the corresponding non-edit
     // page of blog.johnkarahalis.com.
-    window.location.href = document.URL.replace(
-      blog.paths.writeAs,
-      blog.paths.johnKarahalis,
-    ).replace(/\/edit$/, "");
+    navigate(
+      document.URL.replace(
+        blog.paths.writeAs,
+        blog.paths.johnKarahalis,
+      ).replace(/\/edit$/, ""),
+    );
   } else if (at(blog.paths.johnKarahalis)) {
-    window.location.href = document.URL.replace(
-      blog.paths.johnKarahalis,
-      blog.paths.writeAs,
+    navigate(
+      document.URL.replace(blog.paths.johnKarahalis, blog.paths.writeAs),
     );
   } else {
     throw new Error(

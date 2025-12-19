@@ -4,7 +4,7 @@
 
 import * as blog from "./utils/blog";
 
-import { at } from "./utils/navigation";
+import { at, navigate } from "./utils/navigation";
 
 try {
   const pathname = window.location.pathname;
@@ -24,11 +24,12 @@ try {
   }
 
   if (at(blog.paths.johnKarahalis)) {
-    window.location.href =
+    navigate(
       document.URL.replace(blog.paths.johnKarahalis, blog.paths.writeAs) +
-      "/edit";
+        "/edit",
+    );
   } else if (at(blog.paths.writeAs)) {
-    window.location.href += "/edit";
+    navigate(`${document.URL}/edit`);
   } else {
     throw new Error(
       `Not at "${blog.paths.writeAs}" or "${blog.paths.johnKarahalis}".`,
