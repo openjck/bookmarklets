@@ -8,6 +8,7 @@ import { alertOnError } from "./utils/general";
 import { at, navigate } from "./utils/navigation";
 
 alertOnError(() => {
+  // deno-lint-ignore no-window
   const pathname = window.location.pathname;
 
   if (pathname.endsWith("/edit")) {

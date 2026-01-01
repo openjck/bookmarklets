@@ -4,7 +4,7 @@
  * helps me change the slug if I change or add a title later.
  */
 
-import * as blog from "utils/blog";
+import * as blog from "./utils/blog";
 
 import { alertOnError } from "./utils/general";
 

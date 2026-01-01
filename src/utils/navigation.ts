@@ -3,5 +3,6 @@ export function at(url) {
 }
 
 export function navigate(url) {
+  // deno-lint-ignore no-window
   window.location.href = url;
 }
