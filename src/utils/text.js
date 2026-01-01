@@ -1,17 +1,4 @@
-const tagVocabulary = [
-  "#Article",
-  "#Favorites",
-  "#FiveWordMovieReview",
-  "#Life",
-  "#Miscellaneous",
-  "#PublicNotice",
-  "#Quotes",
-  "#Recipes",
-  "#SocialMedia",
-  "#SoftwareDevelopment",
-  "#Tech",
-  "#TechTips",
-];
+import * as blog from "./blog";
 
 export function insertTags() {
   const writingArea = document.querySelector("textarea#writer");
@@ -30,7 +17,7 @@ export function insertTags() {
   const insertPosition = writingArea.value.length;
 
   writingArea.setRangeText(
-    tagVocabulary.join(" "),
+    blog.tagVocabulary.join(" "),
     insertPosition,
     insertPosition,
     "start", // Move the cursor to the beginning of the line with the tags.
