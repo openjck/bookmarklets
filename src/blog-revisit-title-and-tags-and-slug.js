@@ -89,7 +89,11 @@ alertOnError(() => {
   // new slug if the user wants to.
   onDoneEditingKeystroke(() => {
     verifyOneSetOfTags();
-    publishChangesOrNavigateToView();
-    conditionallyApplyNewSlug(numViewers);
+    // TODO: For now, we're just listening after the above verification. In the
+    // future, we should listen again and again UNTIL the verification succeeds.
+    onDoneEditingKeystroke(() => {
+      publishChangesOrNavigateToView();
+      conditionallyApplyNewSlug(numViewers);
+    });
   });
 });
