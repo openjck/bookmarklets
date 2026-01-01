@@ -26,7 +26,7 @@ function navigateToPostEditOnWriteAs() {
 
 function showInstructionsEditTitleAndTags() {
   alert(
-    "Manually step:\n\n" +
+    "Manual step:\n\n" +
       "Edit the title and tags as necessary.\n\n" +
       `Type "ALT+C" (think "C" for "Continue") when done.`,
   );
