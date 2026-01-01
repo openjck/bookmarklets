@@ -25,10 +25,10 @@ try {
 }
 
 const sourceFiles: string[] = [];
-const allowedExtensions: string[] = ['js', 'ts'];
+const allowedExtensions: string[] = ["js", "ts"];
 
 for await (const node of Deno.readDir(dirs.src)) {
-  const extension = node.name.split('.').pop();
+  const extension = node.name.split(".").pop();
   if (node.isFile && allowedExtensions.includes(extension)) {
     sourceFiles.push(path.join(dirs.src, node.name));
   }
@@ -38,17 +38,18 @@ if (sourceFiles.length === 0) {
   throw new Error("No source files found.");
 }
 
-// For some reason I don't understand, possibly a bug in the bookmarklet plugin,
-// somewhat rarely, some bookmarklets are not successfully written to the "dist"
-// directory. This seems like an async issue, but my attempts to fix it have not
-// succeeded, which makes me think it really might be a bug in the bookmarklet
-// plugin.
+// For some reason, somewhat rarely, some bookmarks are not successfully written
+// to the "dist" directory. It definitely seems like an async issue, but my
+// attempts to fix it have not succeeded. I may need to revisit it sometime with
+// a fresh set of eyes.
 //
-// Additionally, the bookmarklet plugin does not seem to work correctly when
-// multiple entrypoints are provided (e.g., `entryPoints: sourceFiles`), only
-// writing one file in that case, which may also be a bug.
+// Additionally, the bookmarklet plugin does not seem to correctly support
+// multiple entrypoints. If the loop is omitted, `entryPoints` is set to
+// `sourceFiles`, `outfile` is removed, and `outdir: dirs.dist` is set, only the
+// first bookmarklet is written. That seems like it could be a bug in the
+// plugin.
 sourceFiles.forEach((sourceFile) => {
-  const outFilename = path.basename(sourceFile).replace(/\..+$/, '.js');
+  const outFilename = path.basename(sourceFile).replace(/\..+$/, ".js");
 
   esbuild.build({
     entryPoints: [sourceFile],
