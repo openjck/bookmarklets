@@ -3,11 +3,10 @@ import * as path from "jsr:@std/path@1.1.4";
 import * as esbuild from "https://deno.land/x/esbuild@v0.27.2/mod.js";
 import bookmarkletPlugin from "https://deno.land/x/esbuild_plugin_bookmarklet@v1.0.0/mod.js";
 
-const projectRoot = path.dirname(path.dirname(import.meta.filename));
+const projectRoot: string = path.dirname(import.meta.dirname);
 
-const dirs = {
+const dirs: Record<string, string> = {
   src: path.join(projectRoot, "src"),
-  bundles: await Deno.makeTempDir({ prefix: "bookmarklets-" }),
   dist: path.join(projectRoot, "dist"),
 };
 
@@ -21,12 +20,16 @@ try {
   } else {
     throw err;
   }
+} finally {
+  await Deno.mkdir(dirs.dist);
 }
-await Deno.mkdir(dirs.dist);
 
-const sourceFiles = [];
+const sourceFiles: string[] = [];
+const allowedExtensions: string[] = ['js', 'ts'];
+
 for await (const node of Deno.readDir(dirs.src)) {
-  if (node.isFile && node.name.endsWith("ts")) {
+  const extension = node.name.split('.').pop();
+  if (node.isFile && allowedExtensions.includes(extension)) {
     sourceFiles.push(path.join(dirs.src, node.name));
   }
 }
@@ -35,23 +38,27 @@ if (sourceFiles.length === 0) {
   throw new Error("No source files found.");
 }
 
-// Bundle each source file into a new file with all imported code included.
-await esbuild.build({
-  entryPoints: sourceFiles,
-  outdir: dirs.bundles,
-  bundle: true,
-});
+// For some reason I don't understand, possibly a bug in the bookmarklet plugin,
+// somewhat rarely, some bookmarklets are not successfully written to the "dist"
+// directory. This seems like an async issue, but my attempts to fix it have not
+// succeeded, which makes me thing it really might be a bug in the bookmarklet
+// plugin.
+//
+// Additionally, the bookmarklet plugin does not seem to work correctly when
+// multiple entrypoints are provided (e.g., `entryPoints: sourceFiles`), only
+// writing one file in that case, which may also be a bug.
+sourceFiles.forEach((sourceFile) => {
+  const outFilename = path.basename(sourceFile).replace(/\..+$/, '.js');
 
-// Convert those bundled files to bookmarklets using esbuild and the
-// "bookmarklet" plugin for esbuild.
-for await (const bundledFile of Deno.readDir(dirs.bundles)) {
   esbuild.build({
-    entryPoints: [path.join(dirs.bundles, bundledFile.name)],
+    entryPoints: [sourceFile],
+    outfile: path.join(dirs.dist, outFilename),
     bundle: true,
     minify: true,
-    outfile: path.join(dirs.dist, bundledFile.name),
     write: false,
     format: "iife",
     plugins: [bookmarkletPlugin],
   });
-}
+
+  esbuild.stop();
+});
