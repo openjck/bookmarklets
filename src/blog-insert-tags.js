@@ -4,8 +4,8 @@
 
 import * as blog from "./utils/blog";
 
-try {
+import { alertOnError } from "./utils/general";
+
+alertOnError(() => {
   blog.insertTags();
-} catch (err) {
-  alert(err.toString());
-}
+});

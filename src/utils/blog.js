@@ -42,7 +42,25 @@ export function insertTags() {
   );
 }
 
+// TODO: Update this so it can get the title on the view page as well.
 export function getTitle() {
   const writingAreaText = writingArea.value;
   return writingAreaText.substring(0, writingAreaText.indexOf("\n"));
+}
+
+/**
+ * Convert the title to a slug. The leading pound sign and whitespace are
+ * removed. After that, we follow that same apparent algorithm that WriteFreely
+ * uses, where underscores and hyphens are preserved, all whitespace is replaced
+ * with hyphens, other non-alphanumeric characters are removed, and all
+ * remaining characters are made lower-case.
+ */
+export function getSlugForTitle() {
+  const title = getTitle();
+
+  return title
+    .replace(/^#\s*/, "")
+    .replace(/\s+/g, "-")
+    .replace(/[^\w-]/g, "")
+    .toLowerCase();
 }

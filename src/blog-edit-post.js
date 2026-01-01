@@ -4,9 +4,10 @@
 
 import * as blog from "./utils/blog";
 
+import { alertOnError } from "./utils/general";
 import { at, navigate } from "./utils/navigation";
 
-try {
+alertOnError(() => {
   const pathname = window.location.pathname;
 
   if (pathname.endsWith("/edit")) {
@@ -35,6 +36,4 @@ try {
       `Not at "${blog.paths.writeAs}" or "${blog.paths.johnKarahalis}".`,
     );
   }
-} catch (err) {
-  alert(err.toString());
-}
+});

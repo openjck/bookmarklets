@@ -6,9 +6,10 @@
 import * as blog from "./utils/blog";
 import * as clipboard from "./utils/clipboard";
 
+import { alertOnError } from "./utils/general";
 import { at } from "./utils/navigation";
 
-try {
+alertOnError(() => {
   let url;
   if (at(blog.paths.writeAs)) {
     url = document.URL.replace(blog.paths.writeAs, blog.paths.johnKarahalis);
@@ -22,6 +23,4 @@ try {
 
   clipboard.write(url);
   alert(`Official URL successfully copied to clipboard. The URL is:\n\n${url}`);
-} catch (err) {
-  alert(err.toString());
-}
+});

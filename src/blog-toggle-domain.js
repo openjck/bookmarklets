@@ -13,9 +13,10 @@
 
 import * as blog from "./utils/blog";
 
+import { alertOnError } from "./utils/general";
 import { at, navigate } from "./utils/navigation";
 
-try {
+alertOnError(() => {
   if (at(blog.paths.writeAs)) {
     // Edit pages cannot be loaded on blog.johnkarahalis.com, so in addition to
     // changing the domain, remove /edit from the URL. That way, if we started
@@ -36,6 +37,4 @@ try {
       `Not at "${blog.paths.writeAs}" or "${blog.paths.johnKarahalis}".`,
     );
   }
-} catch (err) {
-  alert(err.toString());
-}
+});
