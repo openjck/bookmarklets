@@ -41,7 +41,7 @@ if (sourceFiles.length === 0) {
 // For some reason I don't understand, possibly a bug in the bookmarklet plugin,
 // somewhat rarely, some bookmarklets are not successfully written to the "dist"
 // directory. This seems like an async issue, but my attempts to fix it have not
-// succeeded, which makes me thing it really might be a bug in the bookmarklet
+// succeeded, which makes me think it really might be a bug in the bookmarklet
 // plugin.
 //
 // Additionally, the bookmarklet plugin does not seem to work correctly when
