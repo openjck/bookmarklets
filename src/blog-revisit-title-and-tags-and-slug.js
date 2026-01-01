@@ -9,7 +9,9 @@ import { insertTags } from "./utils/blog";
 import { alertOnError } from "./utils/general";
 
 function navigateToPostViewOnWriteAs() {
-  alert("TODO: Automate.\n\nNavigate to the current blog post on the write.as domain if we are not on the write.as domain already.");
+  alert(
+    "TODO: Automate.\n\nNavigate to the current blog post on the write.as domain if we are not on the write.as domain already.",
+  );
 }
 
 function getNumViewers() {
@@ -25,8 +27,8 @@ function navigateToPostEditOnWriteAs() {
 function showInstructionsEditTitleAndTags() {
   alert(
     "Manually step:\n\n" +
-    "Edit the title and tags as necessary.\n\n" +
-    `Type "ALT+C" (think "C" for "Continue") when done.`
+      "Edit the title and tags as necessary.\n\n" +
+      `Type "ALT+C" (think "C" for "Continue") when done.`,
   );
 }
 
@@ -40,18 +42,24 @@ function onDoneEditingKeystroke(fn) {
 }
 
 function verifyOneSetOfTags() {
-  alert("TODO: Automate.\n\nVerify that there is only one set of tags. Hit the keystroke again to proceed.");
+  alert(
+    "TODO: Automate.\n\nVerify that there is only one set of tags. Hit the keystroke again to proceed.",
+  );
 
   // TODO: If there are two sets of tags, tell the user that there are and tell
   // them to hit the keystroke again once the problem is fixed.
 }
 
 function publishChangesOrNavigateToView() {
-  alert("TODO: Automate.\n\nPublish these changes, or if there are no changes, navigate to the view page for this blog post.");
+  alert(
+    "TODO: Automate.\n\nPublish these changes, or if there are no changes, navigate to the view page for this blog post.",
+  );
 }
 
 function conditionallyApplyNewSlug(numViewers) {
-  alert(`TODO: Automate.\n\nGenerate a new slug and apply it if needed. There have been ${numViewers} viewers.`);
+  alert(
+    `TODO: Automate.\n\nGenerate a new slug and apply it if needed. There have been ${numViewers} viewers.`,
+  );
 
   // TODO: **If the new slug would be different**, prompt the user (with
   // window.confirm) to show them how many viewers there have been, what the old
