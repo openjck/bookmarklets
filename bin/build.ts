@@ -79,4 +79,8 @@ for await (const entry of Deno.readDir(dirs.src)) {
 // above-mentioned problem, but including it clarifies that, yes, even doing
 // this does not solve the problem.
 await Promise.all(builds);
+
+// This, however, does seem to be required.
+//
+// https://esbuild.github.io/getting-started/#deno
 await esbuild.stop();
