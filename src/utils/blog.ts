@@ -1,6 +1,8 @@
+import { atBaseUrl } from "./navigation";
+
 const writingArea = document.querySelector("textarea#writer");
 
-export const paths = {
+export const baseUrls = {
   writeAs: "https://write.as/johnkarahalis/",
   johnKarahalis: "https://blog.johnkarahalis.com/",
 };
@@ -63,4 +65,36 @@ export function getSlugForTitle() {
     .replace(/\s+/g, "-")
     .replace(/[^\w-]/g, "")
     .toLowerCase();
+}
+
+export function navigateToEditPage() {
+  // deno-lint-ignore no-window
+  const pathname = window.location.pathname;
+
+  if (pathname.endsWith("/edit")) {
+    throw new Error("You are already on the edit page.");
+  }
+
+  if (
+    pathname === "/" ||
+    pathname.startsWith("/page/") ||
+    pathname === "/johnkarahalis/" ||
+    pathname.startsWith("/johnkarahalis/page/") ||
+    pathname.startsWith("/me/")
+  ) {
+    throw new Error("This page cannot be edited.");
+  }
+
+  if (atBaseUrl(blog.paths.johnKarahalis)) {
+    navigate(
+      document.URL.replace(blog.paths.johnKarahalis, blog.paths.writeAs) +
+        "/edit",
+    );
+  } else if (atBaseUrl(blog.paths.writeAs)) {
+    navigate(`${document.URL}/edit`);
+  } else {
+    throw new Error(
+      `Not at "${blog.paths.writeAs}" or "${blog.paths.johnKarahalis}".`,
+    );
+  }
 }

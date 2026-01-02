@@ -1,4 +1,4 @@
-export function at(url) {
+export function atBaseUrl(url) {
   return document.URL.includes(url);
 }
 

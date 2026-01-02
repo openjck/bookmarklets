@@ -14,27 +14,27 @@
 import * as blog from "./utils/blog";
 
 import { alertOnError } from "./utils/general";
-import { at, navigate } from "./utils/navigation";
+import { atBaseUrl, navigate } from "./utils/navigation";
 
 alertOnError(() => {
-  if (at(blog.paths.writeAs)) {
+  if (atBaseUrl(blog.baseUrls.writeAs)) {
     // Edit pages cannot be loaded on blog.johnkarahalis.com, so in addition to
     // changing the domain, remove /edit from the URL. That way, if we started
     // out on an edit page of Write.as, we end up on the corresponding non-edit
     // page of blog.johnkarahalis.com.
     navigate(
       document.URL.replace(
-        blog.paths.writeAs,
-        blog.paths.johnKarahalis,
+        blog.baseUrls.writeAs,
+        blog.baseUrls.johnKarahalis,
       ).replace(/\/edit$/, ""),
     );
-  } else if (at(blog.paths.johnKarahalis)) {
+  } else if (atBaseUrl(blog.baseUrls.johnKarahalis)) {
     navigate(
-      document.URL.replace(blog.paths.johnKarahalis, blog.paths.writeAs),
+      document.URL.replace(blog.baseUrls.johnKarahalis, blog.baseUrls.writeAs),
     );
   } else {
     throw new Error(
-      `Not at "${blog.paths.writeAs}" or "${blog.paths.johnKarahalis}".`,
+      `Not at "${blog.baseUrls.writeAs}" or "${blog.baseUrls.johnKarahalis}".`,
     );
   }
 });

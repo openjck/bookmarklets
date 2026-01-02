@@ -5,29 +5,30 @@
  * that I use close to the end of the thoughts migration.
  */
 
-import { insertTags } from "./utils/blog";
 import { alertOnError } from "./utils/general";
+import * as blog from "./utils/blog";
 
+/**
+ * If the user is on the "blog.johnkarahalis.com" view page for a blog post,
+ * navigate to the "write.as" view page of the same blog post.
+ */
 function navigateToPostViewOnWriteAs() {
-  alert(
-    "TODO: Automate.\n\nNavigate to the current blog post on the write.as domain if we are not on the write.as domain already.",
-  );
+  if (atBaseUrl(baseUrls.johnKarahalis)) {
+    navigate(
+      document.URL.replace(baseUrls.johnKarahalis, baseUrls.writeAs),
+    );
+  }
 }
 
 function getNumViewers() {
-  alert("TODO: Automate.\n\nTake note of how many viewers there have been.");
-  return "unknown";
-}
-
-function navigateToPostEditOnWriteAs() {
-  // TODO: Just append /edit.
-  alert("TODO: Automate.\n\nNavigate to the edit page for the post.");
+  const viewSpan = document.querySelector("#post .views");
+  return Number(viewSpan.textContent.split(" ")[0]);
 }
 
 function showInstructionsEditTitleAndTags() {
   alert(
     "Manual step:\n\n" +
-      "Edit the title and tags as necessary.\n\n" +
+      "Modify the title and tags as desired.\n\n" +
       `Type "ALT+C" (think "C" for "Continue") when done.`,
   );
 }
@@ -42,12 +43,17 @@ function onDoneEditingKeystroke(fn) {
 }
 
 function verifyOneSetOfTags() {
-  alert(
-    "TODO: Automate.\n\nVerify that there is only one set of tags. Hit the keystroke again to proceed.",
-  );
+  // TODO: Actually determine this programatically.
+  const oneSetOfTags = false;
 
-  // TODO: If there are two sets of tags, tell the user that there are and tell
-  // them to hit the keystroke again once the problem is fixed.
+  if (oneSetOfTags !== true) {
+    alert(
+      "There should only be one set of tags, but more than one set exists.\n" +
+        "\n" +
+        'Remove all but one set of tags, then press "ALT+C" to continue.',
+    );
+    onDoneEditingKeystroke(verifyOneSetOfTags);
+  }
 }
 
 function publishChangesOrNavigateToView() {
@@ -81,19 +87,15 @@ alertOnError(() => {
   const numViewers = getNumViewers();
 
   // Help the user set a new title and tags, if desired.
-  navigateToPostEditOnWriteAs();
-  insertTags();
+  blog.navigateToEditPage();
+  blog.insertTags();
   showInstructionsEditTitleAndTags();
 
   // When the user types ALT+C, verify that the content looks okay and apply the
   // new slug if the user wants to.
   onDoneEditingKeystroke(() => {
     verifyOneSetOfTags();
-    // TODO: For now, we're just listening after the above verification. In the
-    // future, we should listen again and again UNTIL the verification succeeds.
-    onDoneEditingKeystroke(() => {
-      publishChangesOrNavigateToView();
-      conditionallyApplyNewSlug(numViewers);
-    });
+    publishChangesOrNavigateToView();
+    conditionallyApplyNewSlug(numViewers);
   });
 });

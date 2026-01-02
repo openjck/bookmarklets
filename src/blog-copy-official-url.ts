@@ -7,17 +7,20 @@ import * as blog from "./utils/blog";
 import * as clipboard from "./utils/clipboard";
 
 import { alertOnError } from "./utils/general";
-import { at } from "./utils/navigation";
+import { atBaseUrl } from "./utils/navigation";
 
 alertOnError(() => {
   let url;
-  if (at(blog.paths.writeAs)) {
-    url = document.URL.replace(blog.paths.writeAs, blog.paths.johnKarahalis);
-  } else if (at(blog.paths.johnKarahalis)) {
+  if (atBaseUrl(blog.baseUrls.writeAs)) {
+    url = document.URL.replace(
+      blog.baseUrls.writeAs,
+      blog.baseUrls.johnKarahalis,
+    );
+  } else if (atBaseUrl(blog.baseUrls.johnKarahalis)) {
     url = document.URL;
   } else {
     throw new Error(
-      `Not at "${blog.paths.writeAs}" or "${blog.paths.johnKarahalis}".`,
+      `Not at "${blog.baseUrls.writeAs}" or "${blog.baseUrls.johnKarahalis}".`,
     );
   }
 
