@@ -80,7 +80,9 @@ for await (const entry of Deno.readDir(dirs.src)) {
 // this does not solve the problem.
 await Promise.all(builds);
 
-// This, however, does seem to be required.
+// This, however, does seem to be required, at least in some form. The
+// documentation isn't very clear about what to do in a situation like this when
+// multiple asynchronous builds are kicked off.
 //
 // https://esbuild.github.io/getting-started/#deno
 await esbuild.stop();
