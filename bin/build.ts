@@ -42,13 +42,13 @@ for await (const entry of Deno.readDir(dirs.src)) {
   // I find that confusing, and I'm sure it would trip me up in the future, so
   // I'm intentionally avoiding path.parse() here and getting filename parts in
   // different ways.
-  const entryExtension = entry.name.split(".").pop();
+  const entryExtension: string = entry.name.split(".").pop();
 
   if (entry.isFile && allowedExtensions.includes(entryExtension)) {
-    const outfileBasename = entry.name.replace(/\.[^.]+$/, "") + ".js";
+    const outfileBasename: string = entry.name.replace(/\.[^.]+$/, "") + ".js";
 
-    const infileAbsolutePath = path.join(dirs.src, entry.name);
-    const outfileAbsolutePath = path.join(dirs.dist, outfileBasename);
+    const infileAbsolutePath: string = path.join(dirs.src, entry.name);
+    const outfileAbsolutePath: string = path.join(dirs.dist, outfileBasename);
 
     // For some reason, somewhat rarely, some bookmarks are not successfully
     // written to the "dist" directory. It definitely seems like an async issue,
