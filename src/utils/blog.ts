@@ -1,6 +1,6 @@
 import { atBaseUrl } from "./navigation";
 
-const writingArea = document.querySelector("textarea#writer");
+export const writingArea = document.querySelector("textarea#writer");
 
 export const baseUrls = {
   writeAs: "https://write.as/johnkarahalis/",
@@ -21,6 +21,14 @@ export const tagVocabulary = [
   "#Tech",
   "#TechTips",
 ];
+
+/**
+ * Return true if the user is currently on the edit page of a blog post.
+ */
+export function onEditPage() {
+  // deno-lint-ignore no-window
+  return window.location.pathname.endsWith("/edit");
+}
 
 export function insertTags() {
   // This needs to be done here, not in setRangeText, because if it were done
@@ -44,10 +52,21 @@ export function insertTags() {
   );
 }
 
-// TODO: Update this so it can get the title on the view page as well.
-export function getTitle() {
-  const writingAreaText = writingArea.value;
-  return writingAreaText.substring(0, writingAreaText.indexOf("\n"));
+/**
+ * Return the title of the currently-loaded blog post.
+ *
+ * This function can be run on the view page or the edit page of a single blog
+ * post on either domain.
+ */
+export function getTitle(): string {
+  if (onEditPage()) {
+    const writingAreaText = writingArea.value;
+    return writingAreaText
+      .substring(0, writingAreaText.indexOf("\n"))
+      .replace(/^\s*#\s*/, "");
+  } else {
+    return document.querySelector("#post-body #title").textContent;
+  }
 }
 
 /**
@@ -71,7 +90,7 @@ export function navigateToEditPage() {
   // deno-lint-ignore no-window
   const pathname = window.location.pathname;
 
-  if (pathname.endsWith("/edit")) {
+  if (onEditPage()) {
     throw new Error("You are already on the edit page.");
   }
 

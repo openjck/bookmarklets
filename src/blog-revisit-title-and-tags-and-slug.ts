@@ -1,16 +1,23 @@
 /**
- * Purpose: Revisit and potentially change the title, tags, and slug of a single
- * blog post. I want to do this because I only really got into the habit of
- * using a title halfway through the thoughts migration, and I changed the tags
- * that I use close to the end of the thoughts migration.
+ * Revisit and potentially change the title, tags, and/or slug of a single blog
+ * post.
+ *
+ * This bookmarklet must be run on the view page of a single blog post, on
+ * either domain.
+ *
+ * I want to revisit these things because I only really started using titles
+ * halfway through the thoughts migration, and I only really finalized my tag
+ * vocabulary very close to the end.
  */
 
 import { alertOnError } from "./utils/general";
 import * as blog from "./utils/blog";
 
 /**
- * If the user is on the "blog.johnkarahalis.com" view page for a blog post,
- * navigate to the "write.as" view page of the same blog post.
+ * Navigate to the view page of a blog post on the write.as domain.
+ *
+ * This function must be run on the view page of a single blog post, on either
+ * domain.
  */
 function navigateToPostViewOnWriteAs() {
   if (atBaseUrl(baseUrls.johnKarahalis)) {
@@ -20,20 +27,32 @@ function navigateToPostViewOnWriteAs() {
   }
 }
 
+/**
+ * Get the number of viewers of the currently-loaded blog post.
+ *
+ * This function must be run while on the view page of a single blog post on the
+ * write.as domain.
+ */
 function getNumViewers() {
   const viewSpan = document.querySelector("#post .views");
   return Number(viewSpan.textContent.split(" ")[0]);
 }
 
+/**
+ * Explain the manual steps that must be taken to modify the title and tags.
+ */
 function showInstructionsEditTitleAndTags() {
   alert(
     "Manual step:\n\n" +
       "Modify the title and tags as desired.\n" +
       "\n" +
-      'Type "ALT+C" (think "C" for "Continue") when done.',
+      'Press "ALT+C" (think "C" for "Continue") when done.',
   );
 }
 
+/**
+ * Run a function when "ALT+C" is pressed.
+ */
 function onDoneEditingKeystroke(fn) {
   document.addEventListener("keydown", (e) => {
     if (e.altKey === true && e.key.toLowerCase() === "c") {
@@ -43,15 +62,23 @@ function onDoneEditingKeystroke(fn) {
   });
 }
 
+/**
+ * Verify that the blog post being edited contains exactly one set of tags.
+ *
+ * If fewer or greater than one set of tags is found, prompt the user to use
+ * exactly one set of tags and subsequently press "ALT+C", then run this
+ * function again after "ALT+C" is pressed.
+ *
+ * This function must be run on the edit page of a single blog post.
+ */
 function verifyOneSetOfTags() {
-  // TODO: Actually determine this programatically.
-  const oneSetOfTags = false;
+  const numSetsOfTags = blog.writingArea.value.match(/\n\s*#/g).length;
 
-  if (oneSetOfTags !== true) {
+  if (numSetsOfTags !== 1) {
     alert(
-      "There should only be one set of tags, but more than one set exists.\n" +
+      `There must be one set of tags, but ${numSetsOfTags} sets exist.\n` +
         "\n" +
-        'Remove all but one set of tags, then press "ALT+C" to continue.',
+        'Use exactly one set of tags, then press "ALT+C" to continue.',
     );
     onDoneEditingKeystroke(verifyOneSetOfTags);
   }
@@ -78,8 +105,7 @@ function conditionallyApplyNewSlug(numViewers) {
   // (append "/edit/meta"), modify the slug, and save the form. Then, navigate
   // to the view of the page (remove "/edit/meta").
 
-  // TODO: getSlugForTitle doesn't work the way we expect yet on the _view_
-  // page.
+  // TODO: Use getSlugForTitle() as part of this function.
 }
 
 alertOnError(() => {
@@ -92,8 +118,8 @@ alertOnError(() => {
   blog.insertTags();
   showInstructionsEditTitleAndTags();
 
-  // When the user types ALT+C, verify that the content looks okay and apply the
-  // new slug if the user wants to.
+  // When the user presses ALT+C, verify that the content looks okay and apply
+  // the new slug if the user wants to.
   onDoneEditingKeystroke(() => {
     verifyOneSetOfTags();
     publishChangesOrNavigateToView();
