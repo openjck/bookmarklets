@@ -1,4 +1,6 @@
 /**
+ * Navigate to the same blog page, but on the opposing domain.
+ *
  * My blog is hosted by write.as and made available to readers at both the
  * write.as domain and the blog.johnkarahalis.com domain. I can edit posts when
  * I'm browsing my blog on the write.as domain, but not when I'm browsing my
@@ -11,30 +13,29 @@
  * domain, and vice versa.
  */
 
-import * as blog from "./utils/blog";
-
+import { baseUrls } from "./utils/blog";
 import { alertOnError } from "./utils/general";
 import { atBaseUrl, navigate } from "./utils/navigation";
 
 alertOnError(() => {
-  if (atBaseUrl(blog.baseUrls.writeAs)) {
+  if (atBaseUrl(baseUrls.writeAs)) {
     // Edit pages cannot be loaded on blog.johnkarahalis.com, so in addition to
     // changing the domain, remove /edit from the URL. That way, if we started
-    // out on an edit page of Write.as, we end up on the corresponding non-edit
-    // page of blog.johnkarahalis.com.
+    // on an edit page of write.as, we end up on the corresponding non-edit page
+    // of blog.johnkarahalis.com.
     navigate(
       document.URL.replace(
-        blog.baseUrls.writeAs,
-        blog.baseUrls.johnKarahalis,
+        baseUrls.writeAs,
+        baseUrls.johnKarahalis,
       ).replace(/\/edit$/, ""),
     );
-  } else if (atBaseUrl(blog.baseUrls.johnKarahalis)) {
+  } else if (atBaseUrl(baseUrls.johnKarahalis)) {
     navigate(
-      document.URL.replace(blog.baseUrls.johnKarahalis, blog.baseUrls.writeAs),
+      document.URL.replace(baseUrls.johnKarahalis, baseUrls.writeAs),
     );
   } else {
     throw new Error(
-      `Not at "${blog.baseUrls.writeAs}" or "${blog.baseUrls.johnKarahalis}".`,
+      `Not at "${baseUrls.writeAs}" or "${baseUrls.johnKarahalis}".`,
     );
   }
 });

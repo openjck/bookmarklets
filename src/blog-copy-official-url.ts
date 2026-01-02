@@ -1,26 +1,29 @@
 /**
- * Copy the blog.johnkarahalis.com version of the current blog URL to the
- * clipboard.
+ * Copy the official URL of the current blog post to the clipboard.
+ *
+ * Regardless of the domain currently being used, copy the
+ * blog.johnkarahalis.com version of the URL to the clipboard.
  */
 
-import * as blog from "./utils/blog";
 import * as clipboard from "./utils/clipboard";
 
+import { baseUrls } from "./utils/blog";
 import { alertOnError } from "./utils/general";
 import { atBaseUrl } from "./utils/navigation";
 
 alertOnError(() => {
-  let url;
-  if (atBaseUrl(blog.baseUrls.writeAs)) {
+  let url: string;
+
+  if (atBaseUrl(baseUrls.writeAs)) {
     url = document.URL.replace(
-      blog.baseUrls.writeAs,
-      blog.baseUrls.johnKarahalis,
+      baseUrls.writeAs,
+      baseUrls.johnKarahalis,
     );
-  } else if (atBaseUrl(blog.baseUrls.johnKarahalis)) {
+  } else if (atBaseUrl(baseUrls.johnKarahalis)) {
     url = document.URL;
   } else {
     throw new Error(
-      `Not at "${blog.baseUrls.writeAs}" or "${blog.baseUrls.johnKarahalis}".`,
+      `Not at "${baseUrls.writeAs}" or "${baseUrls.johnKarahalis}".`,
     );
   }
 

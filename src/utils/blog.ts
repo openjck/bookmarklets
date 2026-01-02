@@ -1,11 +1,11 @@
-import { atBaseUrl } from "./navigation";
+import { atBaseUrl, navigate } from "./navigation";
 
-export const baseUrls = {
+export const baseUrls: Record<string, string> = {
   writeAs: "https://write.as/johnkarahalis/",
   johnKarahalis: "https://blog.johnkarahalis.com/",
 };
 
-export const tagVocabulary = [
+export const tagVocabulary: string[] = [
   "#Article",
   "#Favorites",
   "#FiveWordMovieReview",
@@ -35,12 +35,13 @@ export function getWritingArea(): HTMLTextAreaElement {
 /**
  * Return true if the user is currently on the edit page of a blog post.
  */
-export function onEditPage() {
+export function onEditPage(): boolean {
   // deno-lint-ignore no-window
-  return window.location.pathname.endsWith("/edit");
+  const pathname: string = window.location.pathname;
+  return pathname.startsWith(baseUrls.writeAs) && pathname.endsWith("/edit");
 }
 
-export function insertTags() {
+export function insertTags(): void {
   // This needs to be done here, not in setRangeText, because if it were done
   // in setRangeText, after the text was inserted, the cursor would move to the
   // the location before any text was inserted, which would be _before_ the
@@ -50,9 +51,11 @@ export function insertTags() {
   // understand, if this string were a template literal (`\n\n`), one fewer
   // newline would be inserted. In fact, it seems that all \n characters are
   // collapsed into one when a template literal is used.
+  const writingArea: HTMLTextAreaElement = getWritingArea();
+
   writingArea.value += "\n\n";
 
-  const insertPosition = writingArea.value.length;
+  const insertPosition: number = writingArea.value.length;
 
   writingArea.setRangeText(
     tagVocabulary.join(" "),
@@ -70,12 +73,22 @@ export function insertTags() {
  */
 export function getTitle(): string {
   if (onEditPage()) {
+    const writingArea: HTMLTextAreaElement = getWritingArea();
     const writingAreaText = writingArea.value;
+
     return writingAreaText
       .substring(0, writingAreaText.indexOf("\n"))
       .replace(/^\s*#\s*/, "");
   } else {
-    return document.querySelector("#post-body #title").textContent;
+    const title: HTMLElement | null = document.querySelector(
+      "#post-body title",
+    );
+
+    if (title === null || title.textContent === null) {
+      throw new Error("Cannot get title element.");
+    } else {
+      return title.textContent;
+    }
   }
 }
 
@@ -86,8 +99,8 @@ export function getTitle(): string {
  * with hyphens, other non-alphanumeric characters are removed, and all
  * remaining characters are made lower-case.
  */
-export function getSlugForTitle() {
-  const title = getTitle();
+export function getSlugForTitle(): string {
+  const title: string = getTitle();
 
   return title
     .replace(/^#\s*/, "")
@@ -96,9 +109,9 @@ export function getSlugForTitle() {
     .toLowerCase();
 }
 
-export function navigateToEditPage() {
+export function navigateToEditPage(): void {
   // deno-lint-ignore no-window
-  const pathname = window.location.pathname;
+  const pathname: string = window.location.pathname;
 
   if (onEditPage()) {
     throw new Error("You are already on the edit page.");
@@ -114,16 +127,16 @@ export function navigateToEditPage() {
     throw new Error("This page cannot be edited.");
   }
 
-  if (atBaseUrl(blog.paths.johnKarahalis)) {
+  if (atBaseUrl(baseUrls.johnKarahalis)) {
     navigate(
-      document.URL.replace(blog.paths.johnKarahalis, blog.paths.writeAs) +
+      document.URL.replace(baseUrls.johnKarahalis, baseUrls.writeAs) +
         "/edit",
     );
-  } else if (atBaseUrl(blog.paths.writeAs)) {
+  } else if (atBaseUrl(baseUrls.writeAs)) {
     navigate(`${document.URL}/edit`);
   } else {
     throw new Error(
-      `Not at "${blog.paths.writeAs}" or "${blog.paths.johnKarahalis}".`,
+      `Not at "${baseUrls.writeAs}" or "${baseUrls.johnKarahalis}".`,
     );
   }
 }
