@@ -5,11 +5,11 @@
  * blog.johnkarahalis.com version of the URL to the clipboard.
  */
 
-import * as clipboard from "./utils/clipboard";
+import * as clipboard from "./utils/clipboard.ts";
 
-import { baseUrls } from "./utils/blog";
-import { alertOnError } from "./utils/general";
-import { atBaseUrl } from "./utils/navigation";
+import { baseUrls } from "./utils/blog.ts";
+import { alertOnError } from "./utils/general.ts";
+import { atBaseUrl } from "./utils/navigation.ts";
 
 alertOnError(() => {
   let url: string;

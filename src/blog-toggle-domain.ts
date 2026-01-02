@@ -13,9 +13,9 @@
  * domain, and vice versa.
  */
 
-import { baseUrls } from "./utils/blog";
-import { alertOnError } from "./utils/general";
-import { atBaseUrl, navigate } from "./utils/navigation";
+import { baseUrls } from "./utils/blog.ts";
+import { alertOnError } from "./utils/general.ts";
+import { atBaseUrl, navigate } from "./utils/navigation.ts";
 
 alertOnError(() => {
   if (atBaseUrl(baseUrls.writeAs)) {

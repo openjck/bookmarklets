@@ -4,6 +4,7 @@
     "jsr:@std/fs@*": "1.0.21",
     "jsr:@std/internal@^1.0.12": "1.0.12",
     "jsr:@std/path@*": "1.1.4",
+    "jsr:@std/path@1.1.4": "1.1.4",
     "jsr:@std/path@^1.1.4": "1.1.4"
   },
   "jsr": {
@@ -29,21 +30,12 @@
     "https://deno.land/x/denoflate@1.2.1/pkg/denoflate.js": "b9f9ad9457d3f12f28b1fb35c555f57443427f74decb403113d67364e4f2caf4",
     "https://deno.land/x/denoflate@1.2.1/pkg/denoflate_bg.wasm.js": "d581956245407a2115a3d7e8d85a9641c032940a8e810acbd59ca86afd34d44d",
     "https://deno.land/x/esbuild@v0.17.11/mod.js": "4f4e61964a551d9c0baf5bb19e973cf631cf8c66ddaf01e70070f8a100fc938c",
+    "https://deno.land/x/esbuild@v0.27.2/mod.js": "c9acd48c94887809e8690c3cad2865816a000e441e696323d4760ff2c9b15724",
     "https://deno.land/x/esbuild_plugin_bookmarklet@v1.0.0/mod.js": "7efc2a51e4a40b13663d19c81726bd635b775faa1568b6b624f488592e99907c"
   },
   "workspace": {
-    "packageJson": {
-      "dependencies": [
-        "npm:@eslint/js@^9.39.2",
-        "npm:@eslint/markdown@^7.5.1",
-        "npm:@openjck/prettier-config@^1.0.2",
-        "npm:bookmarklet@3",
-        "npm:eslint-config-prettier@^10.1.8",
-        "npm:eslint@^9.39.2",
-        "npm:globals@^16.5.0",
-        "npm:npm-run-all2@^8.0.4",
-        "npm:prettier@^3.7.4"
-      ]
-    }
+    "dependencies": [
+      "jsr:@std/path@1.1.4"
+    ]
   }
 }

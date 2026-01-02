@@ -1,4 +1,4 @@
-import { atBaseUrl, navigate } from "./navigation";
+import { atBaseUrl, navigate } from "./navigation.ts";
 
 export const baseUrls: Record<string, string> = {
   writeAs: "https://write.as/johnkarahalis/",

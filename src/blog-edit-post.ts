@@ -5,7 +5,7 @@
  * either domain.
  */
 
-import { navigateToEditPage } from "./utils/blog";
-import { alertOnError } from "./utils/general";
+import { navigateToEditPage } from "./utils/blog.ts";
+import { alertOnError } from "./utils/general.ts";
 
 alertOnError(navigateToEditPage);

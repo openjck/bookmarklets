@@ -1,13 +1,16 @@
-.PHONY: build lint lint-format format
+.PHONY: build format lint lint-types lint-format
 
 build:
 	deno --allow-write --allow-read --allow-env --allow-run bin/build.ts
 
-lint: lint-format
-	deno lint .
+format:
+	deno fmt
+
+lint: lint-format lint-types
+	deno lint
+
+lint-types:
+	deno check
 
 lint-format:
-	deno fmt --check .
-
-format:
-	deno fmt .
+	deno fmt --check

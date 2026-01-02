@@ -10,9 +10,9 @@
  * vocabulary very close to the end.
  */
 
-import { alertOnError } from "./utils/general";
-import { atBaseUrl, navigate } from "./utils/navigation";
-import * as blog from "./utils/blog";
+import { alertOnError } from "./utils/general.ts";
+import { atBaseUrl, navigate } from "./utils/navigation.ts";
+import * as blog from "./utils/blog.ts";
 
 /**
  * Navigate to the view page of a blog post on the write.as domain.

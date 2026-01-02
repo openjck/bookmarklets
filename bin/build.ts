@@ -1,9 +1,15 @@
-import * as path from "jsr:@std/path@1.1.4";
+import * as path from "@std/path";
 
-import * as esbuild from "https://deno.land/x/esbuild@v0.27.2/mod.js";
-import bookmarkletPlugin from "https://deno.land/x/esbuild_plugin_bookmarklet@v1.0.0/mod.js";
+import * as esbuild from "esbuild";
+import esbuildBookmarkletPlugin from "esbuildBookmarkletPlugin";
 
-const projectRoot: string = path.dirname(import.meta.dirname);
+const dirname: string | undefined = import.meta.dirname;
+
+if (dirname === undefined) {
+  throw new Error("Cannot determine the name of the current directory.");
+}
+
+const projectRoot: string = path.dirname(dirname);
 
 const dirs: Record<string, string> = {
   src: path.join(projectRoot, "src"),
@@ -26,7 +32,7 @@ try {
 await Deno.mkdir(dirs.dist);
 
 const allowedExtensions: string[] = ["js", "ts"];
-const builds: Promise<esbuild.BuildResult> = [];
+const builds: Promise<esbuild.BuildResult<esbuild.BuildOptions>>[] = [];
 
 for await (const entry of Deno.readDir(dirs.src)) {
   // There is a Deno API for getting the _parts_ of a filename (path.parse()),
@@ -42,9 +48,22 @@ for await (const entry of Deno.readDir(dirs.src)) {
   // I find that confusing, and I'm sure it would trip me up in the future, so
   // I'm intentionally avoiding path.parse() here and getting filename parts in
   // different ways.
-  const entryExtension: string = entry.name.split(".").pop();
 
-  if (entry.isFile && allowedExtensions.includes(entryExtension)) {
+  if (entry.isDirectory) {
+    continue;
+  }
+
+  const entryExtensionMatches: string[] | null = entry.name.match(/\.[^.]+$/);
+
+  if (entryExtensionMatches === null) {
+    throw new Error(
+      `Cannot determine the extension of the file named "${entry.name}"`,
+    );
+  }
+
+  const entryExtension = entryExtensionMatches[0];
+
+  if (allowedExtensions.includes(entryExtension)) {
     const outfileBasename: string = entry.name.replace(/\.[^.]+$/, "") + ".js";
 
     const infileAbsolutePath: string = path.join(dirs.src, entry.name);
@@ -70,7 +89,7 @@ for await (const entry of Deno.readDir(dirs.src)) {
         minify: true,
         write: false,
         format: "iife",
-        plugins: [bookmarkletPlugin],
+        plugins: [esbuildBookmarkletPlugin],
       }),
     );
   }
