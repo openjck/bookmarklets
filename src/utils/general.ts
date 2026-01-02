@@ -1,4 +1,4 @@
-export function alertOnError(fn) {
+export function alertOnError(fn: () => void) {
   try {
     fn();
   } catch (err) {

@@ -11,6 +11,7 @@
  */
 
 import { alertOnError } from "./utils/general";
+import { atBaseUrl, navigate } from "./utils/navigation";
 import * as blog from "./utils/blog";
 
 /**
@@ -19,10 +20,10 @@ import * as blog from "./utils/blog";
  * This function must be run on the view page of a single blog post, on either
  * domain.
  */
-function navigateToPostViewOnWriteAs() {
-  if (atBaseUrl(baseUrls.johnKarahalis)) {
+function navigateToPostViewOnWriteAs(): void {
+  if (atBaseUrl(blog.baseUrls.johnKarahalis)) {
     navigate(
-      document.URL.replace(baseUrls.johnKarahalis, baseUrls.writeAs),
+      document.URL.replace(blog.baseUrls.johnKarahalis, blog.baseUrls.writeAs),
     );
   }
 }
@@ -33,15 +34,20 @@ function navigateToPostViewOnWriteAs() {
  * This function must be run while on the view page of a single blog post on the
  * write.as domain.
  */
-function getNumViewers() {
+function getViewerCount(): number {
   const viewSpan = document.querySelector("#post .views");
+
+  if (viewSpan === null || viewSpan.textContent === null) {
+    throw new Error("Cannot get viewer count.");
+  }
+
   return Number(viewSpan.textContent.split(" ")[0]);
 }
 
 /**
  * Explain the manual steps that must be taken to modify the title and tags.
  */
-function showInstructionsEditTitleAndTags() {
+function showInstructionsEditTitleAndTags(): void {
   alert(
     "Manual step:\n\n" +
       "Modify the title and tags as desired.\n" +
@@ -53,8 +59,8 @@ function showInstructionsEditTitleAndTags() {
 /**
  * Run a function when "ALT+C" is pressed.
  */
-function onDoneEditingKeystroke(fn) {
-  document.addEventListener("keydown", (e) => {
+function onDoneEditingKeystroke(fn: () => void): void {
+  document.addEventListener("keydown", (e: KeyboardEvent) => {
     if (e.altKey === true && e.key.toLowerCase() === "c") {
       e.preventDefault();
       fn();
@@ -71,10 +77,12 @@ function onDoneEditingKeystroke(fn) {
  *
  * This function must be run on the edit page of a single blog post.
  */
-function verifyOneSetOfTags() {
-  const numSetsOfTags = blog.getWritingArea().value.match(/\n\s*#/g).length;
+function verifyOneSetOfTags(): void {
+  const writingArea: HTMLTextAreaElement = blog.getWritingArea();
+  const matches: RegExpMatchArray | null = writingArea.value.match(/\n\s*#/g);
+  const numSetsOfTags: number = matches === null ? 0 : matches.length;
 
-  if (numSetsOfTags !== 1) {
+  if (matches === null || numSetsOfTags !== 1) {
     alert(
       `There must be one set of tags, but ${numSetsOfTags} sets exist.\n` +
         "\n" +
@@ -84,15 +92,15 @@ function verifyOneSetOfTags() {
   }
 }
 
-function publishChangesOrNavigateToView() {
+function publishChangesOrNavigateToView(): void {
   alert(
     "TODO: Automate.\n\nPublish these changes, or if there are no changes, navigate to the view page for this blog post.",
   );
 }
 
-function conditionallyApplyNewSlug(numViewers) {
+function conditionallyApplyNewSlug(viewerCount: number): void {
   alert(
-    `TODO: Automate.\n\nGenerate a new slug and apply it if needed. There have been ${numViewers} viewers.`,
+    `TODO: Automate.\n\nGenerate a new slug and apply it if needed. There have been ${viewerCount} viewers.`,
   );
 
   // TODO: **If the new slug would be different**, prompt the user (with
@@ -108,10 +116,10 @@ function conditionallyApplyNewSlug(numViewers) {
   // TODO: Use getSlugForTitle() as part of this function.
 }
 
-alertOnError(() => {
+alertOnError((): void => {
   // Get the number of viewers.
   navigateToPostViewOnWriteAs();
-  const numViewers = getNumViewers();
+  const viewerCount = getViewerCount();
 
   // Help the user set a new title and tags, if desired.
   blog.navigateToEditPage();
@@ -123,6 +131,6 @@ alertOnError(() => {
   onDoneEditingKeystroke(() => {
     verifyOneSetOfTags();
     publishChangesOrNavigateToView();
-    conditionallyApplyNewSlug(numViewers);
+    conditionallyApplyNewSlug(viewerCount);
   });
 });

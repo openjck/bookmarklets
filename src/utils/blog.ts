@@ -1,6 +1,5 @@
 import { atBaseUrl } from "./navigation";
 
-
 export const baseUrls = {
   writeAs: "https://write.as/johnkarahalis/",
   johnKarahalis: "https://blog.johnkarahalis.com/",
@@ -22,7 +21,9 @@ export const tagVocabulary = [
 ];
 
 export function getWritingArea(): HTMLTextAreaElement {
-  const writingArea: HTMLTextAreaElement | null = document.querySelector("textarea#writer");
+  const writingArea: HTMLTextAreaElement | null = document.querySelector(
+    "textarea#writer",
+  );
 
   if (writingArea === null) {
     throw new Error("Cannot get writing area element.");
