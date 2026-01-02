@@ -52,15 +52,16 @@ for await (const entry of Deno.readDir(dirs.src)) {
 
     // For some reason, somewhat rarely, some bookmarks are not successfully
     // written to the "dist" directory. It definitely seems like an async issue,
-    // but my attempts to fix it have not succeeded. I suppose it _could_ be an
-    // esbuild issue or an issue with the plugin. I may need to revisit it
-    // sometime with a fresh set of eyes.
+    // but I think this code is written correctly. I suppose it _could_ be an
+    // esbuild issue or an issue with the plugin.
     //
     // Additionally, the bookmarklet plugin does not seem to correctly support
     // multiple entrypoints. If the loop is omitted, `entryPoints` is set to
-    // `sourceFiles`, `outfile` is removed, and `outdir: dirs.dist` is set, only
-    // the first bookmarklet is written. That seems like it could be a bug in
-    // the plugin.
+    // an array of all source files, `outfile` is removed, and `outdir:
+    // dirs.dist` is set, only the first bookmarklet is written. That seems like
+    // it could be a bug in the plugin. I opened an issue about it:
+    //
+    // https://codeberg.org/reesericci/esbuild-plugin-bookmarklet/issues/1
     builds.push(
       esbuild.build({
         entryPoints: [infileAbsolutePath],
@@ -75,14 +76,8 @@ for await (const entry of Deno.readDir(dirs.src)) {
   }
 }
 
-// I don't think this should be necessary, and it doesn't seem to help the
-// above-mentioned problem, but including it clarifies that, yes, even doing
-// this does not solve the problem.
-await Promise.all(builds);
-
-// This, however, does seem to be required, at least in some form. The
-// documentation isn't very clear about what to do in a situation like this when
-// multiple asynchronous builds are kicked off.
+// This seems to be required, according to the esbuild documentation.
 //
 // https://esbuild.github.io/getting-started/#deno
+await Promise.all(builds);
 await esbuild.stop();
