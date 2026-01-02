@@ -28,8 +28,9 @@ function getNumViewers() {
 function showInstructionsEditTitleAndTags() {
   alert(
     "Manual step:\n\n" +
-      "Modify the title and tags as desired.\n\n" +
-      `Type "ALT+C" (think "C" for "Continue") when done.`,
+      "Modify the title and tags as desired.\n" +
+      "\n" +
+      'Type "ALT+C" (think "C" for "Continue") when done.',
   );
 }
 
