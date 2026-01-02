@@ -1,11 +1,10 @@
 /**
- * Add all possible tags to the bottom of the blog post.
+ * Add all possible tags to the bottom of a blog post.
+ *
+ * This bookmarklet must be run while on the edit page of a single blog post.
  */
 
-import * as blog from "./utils/blog";
-
+import { insertTags } from "./utils/blog";
 import { alertOnError } from "./utils/general";
 
-alertOnError(() => {
-  blog.insertTags();
-});
+alertOnError(insertTags);
