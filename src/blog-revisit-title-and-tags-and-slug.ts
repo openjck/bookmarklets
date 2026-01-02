@@ -72,7 +72,7 @@ function onDoneEditingKeystroke(fn) {
  * This function must be run on the edit page of a single blog post.
  */
 function verifyOneSetOfTags() {
-  const numSetsOfTags = blog.writingArea.value.match(/\n\s*#/g).length;
+  const numSetsOfTags = blog.getWritingArea().value.match(/\n\s*#/g).length;
 
   if (numSetsOfTags !== 1) {
     alert(
