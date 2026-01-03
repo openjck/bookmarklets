@@ -103,8 +103,27 @@ function publishChanges(): void {
 }
 
 function changeSlug(newSlug: string): void {
-  // TODO: Visit the meta page (append "/edit/meta"), modify the slug, and save
-  // the form. Then, navigate to the view of the page (remove "/edit/meta").
+  navigate(document.URL + "/edit/meta");
+
+  const slugField: HTMLInputElement | null = document.querySelector(
+    "input#slug",
+  );
+
+  if (slugField === null) {
+    throw new Error("Cannot find or modify slug field.");
+  }
+
+  slugField.value = newSlug;
+
+  const form: HTMLFormElement | null = document.querySelector("form");
+
+  if (form === null) {
+    throw new Error("Cannot find form.");
+  }
+
+  form.submit();
+
+  navigate(document.URL.replace(/\/edit\/meta$/, ""));
 }
 
 function conditionallyApplyNewSlug(viewerCount: number): void {
