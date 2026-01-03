@@ -96,28 +96,40 @@ function publishChanges(): void {
   const publishButton = document.getElementById("publish");
 
   if (publishButton === null) {
-    throw new Error('The "Publish" button could not be found.');
+    throw new Error('Cannot find the "Publish" button.');
   }
 
   publishButton.click();
 }
 
+function changeSlug(newSlug: string): void {
+  // TODO: Visit the meta page (append "/edit/meta"), modify the slug, and save
+  // the form. Then, navigate to the view of the page (remove "/edit/meta").
+}
+
 function conditionallyApplyNewSlug(viewerCount: number): void {
-  alert(
-    `TODO: Automate.\n\nGenerate a new slug and apply it if needed. There have been ${viewerCount} viewers.`,
-  );
+  const currentSlug = blog.getSlug();
+  const newSlug = blog.getSlugForTitle();
 
-  // TODO: **If the new slug would be different**, prompt the user (with
-  // window.confirm) to show them how many viewers there have been, what the old
-  // slug is, and what the new slug would be, asking whether they want the slug
-  // to be changed. On the other hand, if the new slug is the same as the old
-  // slug, raise an alert() saying that.
-  //
-  // TODO: If the user wanted the slug to be changed, visit the meta page
-  // (append "/edit/meta"), modify the slug, and save the form. Then, navigate
-  // to the view of the page (remove "/edit/meta").
+  if (newSlug === currentSlug) {
+    alert("The slug would not be changed.");
+  } else {
+    const confirmationMessage = `There have been ${viewerCount} viewers.\n` +
+      "\n" +
+      "The current slug is:\n" +
+      `${currentSlug}\n` +
+      "\n" +
+      "The new slug would be:\n" +
+      `${newSlug}\n` +
+      "\n" +
+      "Would you like to change the slug?";
 
-  // TODO: Use getSlugForTitle() as part of this function.
+    if (window.confirm(confirmationMessage)) {
+      changeSlug(newSlug);
+    } else {
+      alert("The slug will not be changed.");
+    }
+  }
 }
 
 alertOnError((): void => {
@@ -136,5 +148,6 @@ alertOnError((): void => {
     verifyOneSetOfTags();
     publishChanges();
     conditionallyApplyNewSlug(viewerCount);
+    alert("The metadata update is complete!");
   });
 });

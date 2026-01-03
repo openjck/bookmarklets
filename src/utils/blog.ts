@@ -36,7 +36,6 @@ export function getWritingArea(): HTMLTextAreaElement {
  * Return true if the user is currently on the edit page of a blog post.
  */
 export function onEditPage(): boolean {
-  // deno-lint-ignore no-window
   const pathname: string = window.location.pathname;
   return pathname.startsWith(baseUrls.writeAs) && pathname.endsWith("/edit");
 }
@@ -110,7 +109,6 @@ export function getSlugForTitle(): string {
 }
 
 export function navigateToEditPage(): void {
-  // deno-lint-ignore no-window
   const pathname: string = window.location.pathname;
 
   if (onEditPage()) {
@@ -139,4 +137,20 @@ export function navigateToEditPage(): void {
       `Not at "${baseUrls.writeAs}" or "${baseUrls.johnKarahalis}".`,
     );
   }
+}
+
+/**
+ * Return the slug of the currently loaded blog post.
+ *
+ * This function must be called from the view page of a single blog post on
+ * either domain.
+ */
+export function getSlug(): string {
+  const slug = window.location.pathname.split("/").pop();
+
+  if (slug === undefined) {
+    throw new Error("Cannot find the slug.");
+  }
+
+  return slug;
 }
