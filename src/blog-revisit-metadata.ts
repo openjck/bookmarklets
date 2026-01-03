@@ -92,10 +92,14 @@ function verifyOneSetOfTags(): void {
   }
 }
 
-function publishChangesOrNavigateToView(): void {
-  alert(
-    "TODO: Automate.\n\nPublish these changes, or if there are no changes, navigate to the view page for this blog post.",
-  );
+function publishChanges(): void {
+  const publishButton = document.getElementById("publish");
+
+  if (publishButton === null) {
+    throw new Error('The "Publish" button could not be found.');
+  }
+
+  publishButton.click();
 }
 
 function conditionallyApplyNewSlug(viewerCount: number): void {
@@ -130,7 +134,7 @@ alertOnError((): void => {
   // the new slug if the user wants to.
   onDoneEditingKeystroke(() => {
     verifyOneSetOfTags();
-    publishChangesOrNavigateToView();
+    publishChanges();
     conditionallyApplyNewSlug(viewerCount);
   });
 });
