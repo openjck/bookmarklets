@@ -1,4 +1,4 @@
-import { getElement, getElementAttribute } from "./dom.ts";
+import { getElement, getNonNullElementAttribute } from "./dom.ts";
 import * as navigation from "./navigation.ts";
 
 export const baseUrls: Record<string, string> = {
@@ -85,7 +85,7 @@ export function getTitle(): string {
       .substring(0, writingAreaText.indexOf("\n"))
       .replace(/^\s*#\s*/, "");
   } else {
-    const title: string = getElementAttribute<HTMLTitleElement>(
+    const title: string = getNonNullElementAttribute<HTMLTitleElement>(
       "#post-body h2#title",
       "textContent",
     );

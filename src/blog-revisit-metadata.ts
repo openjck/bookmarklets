@@ -10,7 +10,7 @@
  * vocabulary very close to the end.
  */
 
-import { getElement, getElementAttribute } from "./utils/dom.ts";
+import { getElement, getNonNullElementAttribute } from "./utils/dom.ts";
 import { alertOnError } from "./utils/general.ts";
 import * as navigation from "./utils/navigation.ts";
 import * as blog from "./utils/blog.ts";
@@ -34,7 +34,7 @@ function navigateToPostViewOnWriteAs(): void {
  * write.as domain.
  */
 function getViewerCount(): number {
-  const viewsTextContent: string = getElementAttribute<HTMLSpanElement>(
+  const viewsTextContent: string = getNonNullElementAttribute<HTMLSpanElement>(
     "#post .views",
     "textContent",
   );

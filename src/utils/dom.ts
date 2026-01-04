@@ -1,3 +1,13 @@
+/**
+ * Return an element or throw an `Error` about not being able to find it.
+ *
+ * @param selector - A unique selector for the element, in the same format that
+ *                   is taken by `document.querySelector()`.
+ *
+ * @throws {Error} if the element cannot be found
+ * @returns The first element in the document that matches the provided
+ *          selector.
+ */
 export function getElement<T extends Element>(selector: string): T {
   const element: T | null = document.querySelector(selector);
 
@@ -8,7 +18,19 @@ export function getElement<T extends Element>(selector: string): T {
   return element;
 }
 
-export function getElementAttribute<ElementType extends Element>(
+/**
+ * Return the non-null attribute value of an element or throw an `Error`.
+ *
+ * @param selector - A unique selector for the element, in the same format that
+ *                   is taken by `document.querySelector()`.
+ * @param attribute - The name of the attribute whose value should be returned.
+ *
+ * @throws {Error} if the element cannot be found or the value of the provided
+ *                 attribute is null
+ * @returns The non-null value of the provided attribute for the first element
+ *          in the document that matched the provided selector.
+ */
+export function getNonNullElementAttribute<ElementType extends Element>(
   selector: string,
   attribute: string,
 ): string {
