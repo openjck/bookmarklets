@@ -53,15 +53,19 @@ for await (const entry of Deno.readDir(dirs.src)) {
     continue;
   }
 
-  const entryExtensionMatches: string[] | null = entry.name.match(/\.[^.]+$/);
+  const entryExtensionMatches: RegExpMatchArray =
+    entry.name.match(/\.(?<extension>[^.]+)$/);
 
-  if (entryExtensionMatches === null) {
+  if (
+    entryExtensionMatches === null ||
+    entryExtensionMatches?.groups?.extension === undefined
+  ) {
     throw new Error(
       `Cannot determine the extension of the file named "${entry.name}"`,
     );
   }
 
-  const entryExtension = entryExtensionMatches[0];
+  const entryExtension = entryExtensionMatches.groups.extension;
 
   if (allowedExtensions.includes(entryExtension)) {
     const outfileBasename: string = entry.name.replace(/\.[^.]+$/, "") + ".js";
