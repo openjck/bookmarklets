@@ -26,7 +26,7 @@ export function navigate(url: string): void {
  */
 export function appendToPath(
   urlString: string,
-  pathnameAddition: string
+  pathnameAddition: string,
 ): string {
   const url = new URL(urlString);
   url.pathname = url.pathname.replace(/\/?$/, pathnameAddition);
@@ -44,7 +44,7 @@ export function appendToPath(
  */
 export function removeFromEndOfPath(
   urlString: string,
-  removal: string
+  removal: string,
 ): string {
   const url = new URL(urlString);
   url.pathname = removeFromEnd(url.pathname, removal);
@@ -67,7 +67,7 @@ export function removeFromEndOfPath(
  */
 export function appendToPathAndNavigate(
   urlString: string,
-  addition: string
+  addition: string,
 ): void {
   navigate(appendToPath(urlString, addition));
 }
@@ -85,7 +85,7 @@ export function appendToPathAndNavigate(
  */
 export function removeFromEndOfPathAndNavigate(
   urlString: string,
-  removal: string
+  removal: string,
 ): void {
   navigate(removeFromEndOfPath(urlString, removal));
 }
@@ -115,7 +115,7 @@ export function appendToCurrentPathAndNavigate(toAdd: string): void {
 export function removeFromCurrentPathAndNavigate(toRemove: string): void {
   window.location.pathname = removeFromEndOfPath(
     window.location.pathname,
-    toRemove
+    toRemove,
   );
 }
 
