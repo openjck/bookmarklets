@@ -1,3 +1,4 @@
+import { getElement, getElementAttribute } from "./dom.ts";
 import { atBaseUrl, navigate } from "./navigation.ts";
 
 export const baseUrls: Record<string, string> = {
@@ -21,13 +22,9 @@ export const tagVocabulary: string[] = [
 ];
 
 export function getWritingArea(): HTMLTextAreaElement {
-  const writingArea: HTMLTextAreaElement | null = document.querySelector(
+  const writingArea: HTMLTextAreaElement = getElement<HTMLTextAreaElement>(
     "textarea#writer",
   );
-
-  if (writingArea === null) {
-    throw new Error("Cannot get writing area element.");
-  }
 
   return writingArea;
 }
@@ -79,15 +76,12 @@ export function getTitle(): string {
       .substring(0, writingAreaText.indexOf("\n"))
       .replace(/^\s*#\s*/, "");
   } else {
-    const title: HTMLElement | null = document.querySelector(
-      "#post-body title",
+    const title: string = getElementAttribute<HTMLTitleElement>(
+      "#post-body h2#title",
+      "textContent",
     );
 
-    if (title === null || title.textContent === null) {
-      throw new Error("Cannot get title element.");
-    } else {
-      return title.textContent;
-    }
+    return title;
   }
 }
 

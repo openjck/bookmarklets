@@ -10,8 +10,9 @@
  * vocabulary very close to the end.
  */
 
+import { getElement, getElementAttribute } from "./utils/dom.ts";
 import { alertOnError } from "./utils/general.ts";
-import { atBaseUrl, navigate } from "./utils/navigation.ts";
+import * as navigation from "./utils/navigation.ts";
 import * as blog from "./utils/blog.ts";
 
 /**
@@ -21,8 +22,8 @@ import * as blog from "./utils/blog.ts";
  * domain.
  */
 function navigateToPostViewOnWriteAs(): void {
-  if (atBaseUrl(blog.baseUrls.johnKarahalis)) {
-    navigate(
+  if (navigation.atBaseUrl(blog.baseUrls.johnKarahalis)) {
+    navigation.navigate(
       document.URL.replace(blog.baseUrls.johnKarahalis, blog.baseUrls.writeAs),
     );
   }
@@ -35,13 +36,11 @@ function navigateToPostViewOnWriteAs(): void {
  * write.as domain.
  */
 function getViewerCount(): number {
-  const viewSpan = document.querySelector("#post .views");
-
-  if (viewSpan === null || viewSpan.textContent === null) {
-    throw new Error("Cannot get viewer count.");
-  }
-
-  return Number(viewSpan.textContent.split(" ")[0]);
+  const viewsSpanTextContent: string = getElementAttribute<HTMLSpanElement>(
+    "#post .views",
+    "textContent",
+  );
+  return Number(viewsSpanTextContent.split(" ")[0]);
 }
 
 /**
@@ -93,37 +92,26 @@ function verifyOneSetOfTags(): void {
 }
 
 function publishChanges(): void {
-  const publishButton = document.getElementById("publish");
-
-  if (publishButton === null) {
-    throw new Error('Cannot find the "Publish" button.');
-  }
-
+  const publishButton: HTMLButtonElement = getElement<HTMLButtonElement>(
+    "button#publish",
+  );
   publishButton.click();
 }
 
 function changeSlug(newSlug: string): void {
-  navigate(document.URL + "/edit/meta");
+  navigation.appendToPathAndNavigate("/edit/meta");
 
-  const slugField: HTMLInputElement | null = document.querySelector(
+  const slugField: HTMLInputElement = getElement<HTMLInputElement>(
     "input#slug",
   );
 
-  if (slugField === null) {
-    throw new Error("Cannot find or modify slug field.");
-  }
+  const form: HTMLFormElement = getElement<HTMLFormElement>("form");
 
   slugField.value = newSlug;
 
-  const form: HTMLFormElement | null = document.querySelector("form");
-
-  if (form === null) {
-    throw new Error("Cannot find form.");
-  }
-
   form.submit();
 
-  navigate(document.URL.replace(/\/edit\/meta$/, ""));
+  navigation.removeFromPathAndNavigate("/edit/meta");
 }
 
 function conditionallyApplyNewSlug(viewerCount: number): void {

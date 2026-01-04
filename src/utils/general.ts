@@ -13,3 +13,14 @@ export function alertOnError(fn: () => void): void {
     }
   }
 }
+
+// Important note: If the substring is not found, return the original string.
+export function removeFromEnd(str: string, toRemove: string): string {
+  const lastIndex = str.lastIndexOf(toRemove);
+
+  if (lastIndex === -1) {
+    return str;
+  }
+
+  return str.substring(0, lastIndex);
+}
