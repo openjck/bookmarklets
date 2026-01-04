@@ -1,5 +1,5 @@
 import { getElement, getElementAttribute } from "./dom.ts";
-import { atBaseUrl, navigate } from "./navigation.ts";
+import * as navigation from "./navigation.ts";
 
 export const baseUrls: Record<string, string> = {
   writeAs: "https://write.as/johnkarahalis/",
@@ -35,6 +35,15 @@ export function getWritingArea(): HTMLTextAreaElement {
 export function onEditPage(): boolean {
   const pathname: string = window.location.pathname;
   return pathname.startsWith(baseUrls.writeAs) && pathname.endsWith("/edit");
+}
+
+/**
+ * Return true if the user is currently on the "Edit metadata" page of a post.
+ */
+export function onEditMetaPage(): boolean {
+  const pathname: string = window.location.pathname;
+  return pathname.startsWith(baseUrls.writeAs) &&
+    pathname.endsWith("/edit/meta");
 }
 
 export function insertTags(): void {
@@ -102,30 +111,61 @@ export function getSlugForTitle(): string {
     .toLowerCase();
 }
 
-export function navigateToEditPage(): void {
-  const pathname: string = window.location.pathname;
+export function pageIsEditable(urlStr: string): boolean {
+  const url = new URL(urlStr);
 
+  if (
+    url.pathname === "/" ||
+    url.pathname.startsWith("/page/") ||
+    url.pathname === "/johnkarahalis/" ||
+    url.pathname.startsWith("/johnkarahalis/page/") ||
+    url.pathname.startsWith("/me/")
+  ) {
+    return false;
+  }
+
+  return true;
+}
+
+export function navigateToEditPage(): void {
   if (onEditPage()) {
     throw new Error("You are already on the edit page.");
   }
 
-  if (
-    pathname === "/" ||
-    pathname.startsWith("/page/") ||
-    pathname === "/johnkarahalis/" ||
-    pathname.startsWith("/johnkarahalis/page/") ||
-    pathname.startsWith("/me/")
-  ) {
+  if (!pageIsEditable(document.URL)) {
     throw new Error("This page cannot be edited.");
   }
 
-  if (atBaseUrl(baseUrls.johnKarahalis)) {
-    navigate(
-      document.URL.replace(baseUrls.johnKarahalis, baseUrls.writeAs) +
-        "/edit",
+  if (navigation.atBaseUrl(baseUrls.johnKarahalis)) {
+    navigation.appendToPathAndNavigate(
+      document.URL.replace(baseUrls.johnKarahalis, baseUrls.writeAs),
+      "/edit",
     );
-  } else if (atBaseUrl(baseUrls.writeAs)) {
-    navigate(`${document.URL}/edit`);
+  } else if (navigation.atBaseUrl(baseUrls.writeAs)) {
+    navigation.appendToCurrentPathAndNavigate("/edit");
+  } else {
+    throw new Error(
+      `Not at "${baseUrls.writeAs}" or "${baseUrls.johnKarahalis}".`,
+    );
+  }
+}
+
+export function navigateToEditMetaPage(): void {
+  if (onEditMetaPage()) {
+    throw new Error('You are already on the "Edit metadata" page.');
+  }
+
+  if (!pageIsEditable(document.URL)) {
+    throw new Error("This page cannot be edited.");
+  }
+
+  if (navigation.atBaseUrl(baseUrls.johnKarahalis)) {
+    navigation.appendToPathAndNavigate(
+      document.URL.replace(baseUrls.johnKarahalis, baseUrls.writeAs),
+      "/edit/meta",
+    );
+  } else if (navigation.atBaseUrl(baseUrls.writeAs)) {
+    navigation.appendToCurrentPathAndNavigate("/edit/meta");
   } else {
     throw new Error(
       `Not at "${baseUrls.writeAs}" or "${baseUrls.johnKarahalis}".`,
@@ -147,4 +187,58 @@ export function getSlug(): string {
   }
 
   return slug;
+}
+
+/**
+ * Navigate to the same blog page, but on the opposing domain.
+ *
+ * My blog is hosted by write.as and made available to readers at both the
+ * write.as domain and the blog.johnkarahalis.com domain. I can edit posts when
+ * I'm browsing my blog on the write.as domain, but not when I'm browsing my
+ * blog on the blog.johnkarahalis.com domain. By contrast, when I'm sharing
+ * links with others, I almost always want to share the URL with the
+ * blog.johnkarahalis.com domain.
+ *
+ * This function swaps between them. If I'm viewing a post or other page on the
+ * write.as domain, it navigates to that page on the blog.johnkarahalis.com
+ * domain, and vice versa.
+ */
+export function toggleDomain(): void {
+  if (navigation.atBaseUrl(baseUrls.writeAs)) {
+    // Edit pages cannot be loaded on blog.johnkarahalis.com, so in addition to
+    // changing the domain, remove /edit from the URL. That way, if we started
+    // on an edit page of write.as, we end up on the corresponding non-edit page
+    // of blog.johnkarahalis.com.
+    navigation.removeFromEndOfPathAndNavigate(
+      document.URL.replace(baseUrls.writeAs, baseUrls.johnKarahalis),
+      "/edit",
+    );
+  } else if (navigation.atBaseUrl(baseUrls.johnKarahalis)) {
+    navigation.navigate(
+      document.URL.replace(baseUrls.johnKarahalis, baseUrls.writeAs),
+    );
+  } else {
+    throw new Error(
+      `Not at "${baseUrls.writeAs}" or "${baseUrls.johnKarahalis}".`,
+    );
+  }
+}
+
+export function getOfficialUrl(): string {
+  let officialUrl: string;
+
+  if (navigation.atBaseUrl(baseUrls.writeAs)) {
+    officialUrl = document.URL.replace(
+      baseUrls.writeAs,
+      baseUrls.johnKarahalis,
+    );
+  } else if (navigation.atBaseUrl(baseUrls.johnKarahalis)) {
+    officialUrl = document.URL;
+  } else {
+    throw new Error(
+      `Not at "${baseUrls.writeAs}" or "${baseUrls.johnKarahalis}".`,
+    );
+  }
+
+  return officialUrl;
 }

@@ -5,28 +5,15 @@
  * blog.johnkarahalis.com version of the URL to the clipboard.
  */
 
-import * as clipboard from "./utils/clipboard.ts";
-
-import { baseUrls } from "./utils/blog.ts";
+import { getOfficialUrl } from "./utils/blog.ts";
 import { alertOnError } from "./utils/general.ts";
-import { atBaseUrl } from "./utils/navigation.ts";
 
-alertOnError(() => {
-  let url: string;
-
-  if (atBaseUrl(baseUrls.writeAs)) {
-    url = document.URL.replace(
-      baseUrls.writeAs,
-      baseUrls.johnKarahalis,
-    );
-  } else if (atBaseUrl(baseUrls.johnKarahalis)) {
-    url = document.URL;
-  } else {
-    throw new Error(
-      `Not at "${baseUrls.writeAs}" or "${baseUrls.johnKarahalis}".`,
-    );
-  }
-
-  clipboard.write(url);
-  alert(`Official URL successfully copied to clipboard. The URL is:\n\n${url}`);
+alertOnError(async () => {
+  const officialUrl: string = getOfficialUrl();
+  await navigator.clipboard.writeText(officialUrl);
+  alert(
+    "Official URL successfully copied to clipboard. The URL is:\n" +
+      "\n" +
+      officialUrl,
+  );
 });

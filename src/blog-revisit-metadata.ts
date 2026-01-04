@@ -23,9 +23,7 @@ import * as blog from "./utils/blog.ts";
  */
 function navigateToPostViewOnWriteAs(): void {
   if (navigation.atBaseUrl(blog.baseUrls.johnKarahalis)) {
-    navigation.navigate(
-      document.URL.replace(blog.baseUrls.johnKarahalis, blog.baseUrls.writeAs),
-    );
+    blog.toggleDomain();
   }
 }
 
@@ -36,11 +34,16 @@ function navigateToPostViewOnWriteAs(): void {
  * write.as domain.
  */
 function getViewerCount(): number {
-  const viewsSpanTextContent: string = getElementAttribute<HTMLSpanElement>(
+  const viewsTextContent: string = getElementAttribute<HTMLSpanElement>(
     "#post .views",
     "textContent",
   );
-  return Number(viewsSpanTextContent.split(" ")[0]);
+
+  // Get the number of viewers, ignoring the word "views" and the space between
+  // the number and the word.
+  const viewerCountStr: string = viewsTextContent.split(" ")[0];
+
+  return Number(viewerCountStr);
 }
 
 /**
@@ -48,8 +51,7 @@ function getViewerCount(): number {
  */
 function showInstructionsEditTitleAndTags(): void {
   alert(
-    "Manual step:\n\n" +
-      "Modify the title and tags as desired.\n" +
+    "Manual step: Modify the title and tags as desired.\n" +
       "\n" +
       'Press "ALT+C" (think "C" for "Continue") when done.',
   );
@@ -81,7 +83,7 @@ function verifyOneSetOfTags(): void {
   const matches: RegExpMatchArray | null = writingArea.value.match(/\n\s*#/g);
   const numSetsOfTags: number = matches === null ? 0 : matches.length;
 
-  if (matches === null || numSetsOfTags !== 1) {
+  if (numSetsOfTags !== 1) {
     alert(
       `There must be one set of tags, but ${numSetsOfTags} sets exist.\n` +
         "\n" +
@@ -99,7 +101,7 @@ function publishChanges(): void {
 }
 
 function changeSlug(newSlug: string): void {
-  navigation.appendToPathAndNavigate("/edit/meta");
+  blog.navigateToEditMetaPage();
 
   const slugField: HTMLInputElement = getElement<HTMLInputElement>(
     "input#slug",
@@ -111,7 +113,7 @@ function changeSlug(newSlug: string): void {
 
   form.submit();
 
-  navigation.removeFromPathAndNavigate("/edit/meta");
+  navigation.removeFromCurrentPathAndNavigate("/edit/meta");
 }
 
 function conditionallyApplyNewSlug(viewerCount: number): void {
@@ -129,7 +131,7 @@ function conditionallyApplyNewSlug(viewerCount: number): void {
       "The new slug would be:\n" +
       `${newSlug}\n` +
       "\n" +
-      "Would you like to change the slug?";
+      'Press "OK" to change the slug or "Cancel" to leave it unchanged.';
 
     if (window.confirm(confirmationMessage)) {
       changeSlug(newSlug);
@@ -149,8 +151,8 @@ alertOnError((): void => {
   blog.insertTags();
   showInstructionsEditTitleAndTags();
 
-  // When the user presses ALT+C, verify that the content looks okay and apply
-  // the new slug if the user wants to.
+  // When the user presses "ALT+C", verify that the content looks okay, ask the
+  // user if they want to change the slug, and change the slug if they want to.
   onDoneEditingKeystroke(() => {
     verifyOneSetOfTags();
     publishChanges();
