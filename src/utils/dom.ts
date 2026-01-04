@@ -23,7 +23,7 @@ export function getElement<T extends Element>(selector: string): T {
  *
  * @param selector - A unique selector for the element, in the same format that
  *                   is taken by `document.querySelector()`.
- * @param attribute - The name of the attribute whose value should be returned.
+ * @param property - The name of the property whose value should be returned.
  *
  * @throws {Error} if the element cannot be found or the value of the provided
  *                 attribute is null
@@ -32,14 +32,14 @@ export function getElement<T extends Element>(selector: string): T {
  */
 export function getNonNullElementAttribute<ElementType extends Element>(
   selector: string,
-  attribute: string,
+  property: string,
 ): string {
   const element: ElementType = getElement<ElementType>(selector);
-  const attributeValue: string | null = element.getAttribute(attribute);
+  const attributeValue: string | null = element[property];
 
   if (attributeValue === null) {
     throw new Error(
-      `Property "${attribute}" of element found with selector "${selector}" ` +
+      `Property "${property}" of element found with selector "${selector}" ` +
         "is null.",
     );
   }
