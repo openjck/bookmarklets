@@ -6,6 +6,5 @@
  */
 
 import { navigateToEditPage } from "./utils/blog.ts";
-import { alertOnError } from "./utils/general.ts";
 
-alertOnError(navigateToEditPage);
+navigateToEditPage();

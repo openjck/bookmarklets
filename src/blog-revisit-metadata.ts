@@ -10,7 +10,6 @@
  * vocabulary very close to the end.
  */
 
-import { alertOnError } from "./utils/general.ts";
 import * as dom from "./utils/dom.ts";
 import * as navigation from "./utils/navigation.ts";
 import * as blog from "./utils/blog.ts";
@@ -142,7 +141,10 @@ async function conditionallyApplyNewSlug(viewerCount: number): Promise<void> {
   }
 }
 
-alertOnError(async (): Promise<void> => {
+// At the time of this writing (2026-01-05), top-level await is not supported by
+// esbuild when using the "iife" format, as we are in this project, making this
+// additional, "inner" IIFE necessary.
+(async () => {
   // Get the number of viewers.
   navigateToPostViewOnWriteAs();
   const viewerCount: number = await getViewerCount();
@@ -162,4 +164,4 @@ alertOnError(async (): Promise<void> => {
     await conditionallyApplyNewSlug(viewerCount);
     alert("The metadata update is complete!");
   });
-});
+})();
