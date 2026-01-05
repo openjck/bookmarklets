@@ -31,10 +31,12 @@ export function getWritingArea(): HTMLTextAreaElement {
 
 /**
  * Return true if the user is currently on the edit page of a blog post.
+ *
+ * @return `true` if the user is currently on the edit page of a blog post.
  */
 export function onEditPage(): boolean {
-  const pathname: string = window.location.pathname;
-  return pathname.startsWith(baseUrls.writeAs) && pathname.endsWith("/edit");
+  return window.location.href.startsWith(baseUrls.writeAs) &&
+    window.location.pathname.endsWith("/edit");
 }
 
 /**
