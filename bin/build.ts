@@ -53,8 +53,9 @@ for await (const entry of Deno.readDir(dirs.src)) {
     continue;
   }
 
-  const entryExtensionMatches: RegExpMatchArray =
-    entry.name.match(/\.(?<extension>[^.]+)$/);
+  const entryExtensionMatches: RegExpMatchArray = entry.name.match(
+    /\.(?<extension>[^.]+)$/,
+  );
 
   if (
     entryExtensionMatches === null ||

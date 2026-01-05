@@ -123,15 +123,15 @@ export function removeFromCurrentPathAndNavigate(toRemove: string): void {
  * Return `true` if the current URL begins with the provided string.
  *
  * @example
- * // document.URL is "https://www.example.com/about/me/contact".
+ * // window.location.href is "https://www.example.com/about/me/contact".
  * atBaseUrl("https://www.example.com/about/"); // true
  *
  * @example
- * // document.URL is "https://www.example.com/about/me/contact".
+ * // window.location.href is "https://www.example.com/about/me/contact".
  * atBaseUrl("https://www.example.com/contact/"); // false
  *
  * @returns `true` if the current URL begins with the provided string.
  */
 export function atBaseUrl(url: string): boolean {
-  return document.URL.startsWith(url);
+  return window.location.href.startsWith(url);
 }

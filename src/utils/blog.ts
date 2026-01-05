@@ -134,13 +134,13 @@ export function navigateToEditPage(): void {
     throw new Error("You are already on the edit page.");
   }
 
-  if (!pageIsEditable(document.URL)) {
+  if (!pageIsEditable(window.location.href)) {
     throw new Error("This page cannot be edited.");
   }
 
   if (navigation.atBaseUrl(baseUrls.johnKarahalis)) {
     navigation.appendToPathAndNavigate(
-      document.URL.replace(baseUrls.johnKarahalis, baseUrls.writeAs),
+      window.location.href.replace(baseUrls.johnKarahalis, baseUrls.writeAs),
       "/edit",
     );
   } else if (navigation.atBaseUrl(baseUrls.writeAs)) {
@@ -157,13 +157,13 @@ export function navigateToEditMetaPage(): void {
     throw new Error('You are already on the "Edit metadata" page.');
   }
 
-  if (!pageIsEditable(document.URL)) {
+  if (!pageIsEditable(window.location.href)) {
     throw new Error("This page cannot be edited.");
   }
 
   if (navigation.atBaseUrl(baseUrls.johnKarahalis)) {
     navigation.appendToPathAndNavigate(
-      document.URL.replace(baseUrls.johnKarahalis, baseUrls.writeAs),
+      window.location.href.replace(baseUrls.johnKarahalis, baseUrls.writeAs),
       "/edit/meta",
     );
   } else if (navigation.atBaseUrl(baseUrls.writeAs)) {
@@ -212,12 +212,12 @@ export function toggleDomain(): void {
     // on an edit page of write.as, we end up on the corresponding non-edit page
     // of blog.johnkarahalis.com.
     navigation.removeFromEndOfPathAndNavigate(
-      document.URL.replace(baseUrls.writeAs, baseUrls.johnKarahalis),
+      window.location.href.replace(baseUrls.writeAs, baseUrls.johnKarahalis),
       "/edit",
     );
   } else if (navigation.atBaseUrl(baseUrls.johnKarahalis)) {
     navigation.navigate(
-      document.URL.replace(baseUrls.johnKarahalis, baseUrls.writeAs),
+      window.location.href.replace(baseUrls.johnKarahalis, baseUrls.writeAs),
     );
   } else {
     throw new Error(
@@ -230,12 +230,12 @@ export function getOfficialUrl(): string {
   let officialUrl: string;
 
   if (navigation.atBaseUrl(baseUrls.writeAs)) {
-    officialUrl = document.URL.replace(
+    officialUrl = window.location.href.replace(
       baseUrls.writeAs,
       baseUrls.johnKarahalis,
     );
   } else if (navigation.atBaseUrl(baseUrls.johnKarahalis)) {
-    officialUrl = document.URL;
+    officialUrl = window.location.href;
   } else {
     throw new Error(
       `Not at "${baseUrls.writeAs}" or "${baseUrls.johnKarahalis}".`,
