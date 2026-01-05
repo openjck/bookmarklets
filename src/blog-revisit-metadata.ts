@@ -10,8 +10,8 @@
  * vocabulary very close to the end.
  */
 
-import { getElement, getNonNullElementAttribute } from "./utils/dom.ts";
 import { alertOnError } from "./utils/general.ts";
+import * as dom from "./utils/dom.ts";
 import * as navigation from "./utils/navigation.ts";
 import * as blog from "./utils/blog.ts";
 
@@ -34,10 +34,11 @@ function navigateToPostViewOnWriteAs(): void {
  * write.as domain.
  */
 function getViewerCount(): number {
-  const viewsTextContent: string = getNonNullElementAttribute<HTMLSpanElement>(
-    "#post .views",
-    "textContent",
-  );
+  const viewsTextContent: dom.NonNullElementProperty<"textContent"> = dom
+    .getNonNullElementProperty<HTMLSpanElement, "textContent">(
+      "#post .views",
+      "textContent",
+    );
 
   // Get the number of viewers, ignoring the word "views" and the space between
   // the number and the word.
@@ -94,7 +95,7 @@ function verifyOneSetOfTags(): void {
 }
 
 function publishChanges(): void {
-  const publishButton: HTMLButtonElement = getElement<HTMLButtonElement>(
+  const publishButton: HTMLButtonElement = dom.getElement<HTMLButtonElement>(
     "button#publish",
   );
   publishButton.click();
@@ -103,11 +104,11 @@ function publishChanges(): void {
 function changeSlug(newSlug: string): void {
   blog.navigateToEditMetaPage();
 
-  const slugField: HTMLInputElement = getElement<HTMLInputElement>(
+  const slugField: HTMLInputElement = dom.getElement<HTMLInputElement>(
     "input#slug",
   );
 
-  const form: HTMLFormElement = getElement<HTMLFormElement>("form");
+  const form: HTMLFormElement = dom.getElement<HTMLFormElement>("form");
 
   slugField.value = newSlug;
 

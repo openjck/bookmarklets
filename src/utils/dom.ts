@@ -1,3 +1,6 @@
+export type NonNullElementProperty<ElementKey extends keyof Element> =
+  NonNullable<Element[ElementKey]>;
+
 /**
  * Return an element or throw an `Error` about not being able to find it.
  *
@@ -30,12 +33,15 @@ export function getElement<T extends Element>(selector: string): T {
  * @returns The non-null value of the provided attribute for the first element
  *          in the document that matched the provided selector.
  */
-export function getNonNullElementAttribute<ElementType extends Element>(
+export function getNonNullElementProperty<
+  ElementType extends Element,
+  ElementKey extends keyof Element,
+>(
   selector: string,
-  property: string,
-): string {
+  property: ElementKey,
+): NonNullElementProperty<ElementKey> {
   const element: ElementType = getElement<ElementType>(selector);
-  const attributeValue: string | null = element[property];
+  const attributeValue: Element[ElementKey] = element[property];
 
   if (attributeValue === null) {
     throw new Error(
@@ -44,5 +50,5 @@ export function getNonNullElementAttribute<ElementType extends Element>(
     );
   }
 
-  return attributeValue;
+  return attributeValue as NonNullElementProperty<ElementKey>;
 }

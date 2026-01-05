@@ -1,4 +1,4 @@
-import { getElement, getNonNullElementAttribute } from "./dom.ts";
+import * as dom from "./dom.ts";
 import * as navigation from "./navigation.ts";
 
 export const baseUrls: Record<string, string> = {
@@ -22,7 +22,7 @@ export const tagVocabulary: string[] = [
 ];
 
 export function getWritingArea(): HTMLTextAreaElement {
-  const writingArea: HTMLTextAreaElement = getElement<HTMLTextAreaElement>(
+  const writingArea: HTMLTextAreaElement = dom.getElement<HTMLTextAreaElement>(
     "textarea#writer",
   );
 
@@ -87,10 +87,11 @@ export function getTitle(): string {
       .substring(0, writingAreaText.indexOf("\n"))
       .replace(/^\s*#\s*/, "");
   } else {
-    const title: string = getNonNullElementAttribute<HTMLTitleElement>(
-      "#post-body h2#title",
-      "textContent",
-    );
+    const title: dom.NonNullElementProperty<"textContent"> = dom
+      .getNonNullElementProperty<HTMLTitleElement, "textContent">(
+        "#post-body h2#title",
+        "textContent",
+      );
 
     return title;
   }
