@@ -2,45 +2,82 @@ export type NonNullElementProperty<ElementKey extends keyof Element> =
   NonNullable<Element[ElementKey]>;
 
 /**
- * Return an element or throw an `Error` about not being able to find it.
+ * Return a promise that resolves to an element or rejects with an `Error`.
+ *
+ * This function is based on the following Stack Overflow answer:
+ *
+ * https://stackoverflow.com/a/61511955/715866
+ *
+ * Additionally, ChatGPT offered help in implementing a timeout.
  *
  * @param selector - A unique selector for the element, in the same format that
- *                   is taken by `document.querySelector()`.
+ *                   is accepted by `document.querySelector()`.
+ * @param [timeout=0] - A time duration in milliseconds, after which the promise
+ *                      should reject with an `Error` if the element could not
+ *                      be found.
  *
- * @throws {Error} if the element cannot be found
- * @returns The first element in the document that matches the provided
- *          selector.
+ * @returns A promise which either resolves to the first element in the document
+ *          matching the provided selector, if one can be found before the
+ *          `timeout` passes, or which rejects with an `Error`.
  */
-export function getElement<T extends Element>(selector: string): T {
-  const element: T | null = document.querySelector(selector);
+export function getElement<T extends Element>(
+  selector: string,
+  timeout: number = 0,
+): Promise<T> {
+  return new Promise((resolve, reject) => {
+    const element: T | null = document.querySelector(selector);
+    if (element !== null) {
+      return resolve(element);
+    }
 
-  if (element === null) {
-    throw new Error(`Cannot find element by selector "${selector}".`);
-  }
+    const observer = new MutationObserver(() => {
+      const element: T | null = document.querySelector(selector);
+      if (element !== null) {
+        observer.disconnect();
+        clearTimeout(timer);
+        return resolve(element);
+      }
+    });
 
-  return element;
+    observer.observe(document.documentElement, {
+      childList: true,
+      subtree: true,
+    });
+
+    const timer = setTimeout(() => {
+      observer.disconnect();
+      return reject(new Error(`Cannot find element by selector ${selector}.`));
+    }, timeout);
+  });
 }
 
 /**
- * Return the non-null attribute value of an element or throw an `Error`.
+ * Return a promise that resolves to a non-null element property value.
+ *
+ * If the element cannot be found or the element's property value is null,
+ * reject with an `Error`.
  *
  * @param selector - A unique selector for the element, in the same format that
  *                   is taken by `document.querySelector()`.
  * @param property - The name of the property whose value should be returned.
+ * @param [timeout=0] - A time duration in milliseconds, after which the promise
+ *                      should reject with an `Error` if the element could not
+ *                      be found.
  *
- * @throws {Error} if the element cannot be found or the value of the provided
- *                 attribute is null
- * @returns The non-null value of the provided attribute for the first element
- *          in the document that matched the provided selector.
+ * @returns A promise which either resolves to the attribute value of the first
+ *          element in the document matching the provided selector, if one can
+ *          be found before the `timeout` passes and its attribute value is
+ *          non-null, or which rejects with an `Error`.
  */
-export function getNonNullElementProperty<
+export async function getNonNullElementProperty<
   ElementType extends Element,
   ElementKey extends keyof Element,
 >(
   selector: string,
   property: ElementKey,
-): NonNullElementProperty<ElementKey> {
-  const element: ElementType = getElement<ElementType>(selector);
+  timeout: number = 0,
+): Promise<NonNullElementProperty<ElementKey>> {
+  const element: ElementType = await getElement<ElementType>(selector, timeout);
   const attributeValue: Element[ElementKey] = element[property];
 
   if (attributeValue === null) {

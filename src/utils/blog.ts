@@ -21,9 +21,14 @@ export const tagVocabulary: string[] = [
   "#TechTips",
 ];
 
-export function getWritingArea(): HTMLTextAreaElement {
-  const writingArea: HTMLTextAreaElement = dom.getElement<HTMLTextAreaElement>(
+export async function getWritingArea(
+  timeout: number | undefined = undefined,
+): Promise<HTMLTextAreaElement> {
+  const writingArea: HTMLTextAreaElement = await dom.getElement<
+    HTMLTextAreaElement
+  >(
     "textarea#writer",
+    timeout,
   );
 
   return writingArea;
@@ -48,7 +53,7 @@ export function onEditMetaPage(): boolean {
     pathname.endsWith("/edit/meta");
 }
 
-export function insertTags(): void {
+export async function insertTags(): Promise<void> {
   // This needs to be done here, not in setRangeText, because if it were done
   // in setRangeText, after the text was inserted, the cursor would move to the
   // the location before any text was inserted, which would be _before_ the
@@ -58,7 +63,7 @@ export function insertTags(): void {
   // understand, if this string were a template literal (`\n\n`), one fewer
   // newline would be inserted. In fact, it seems that all \n characters are
   // collapsed into one when a template literal is used.
-  const writingArea: HTMLTextAreaElement = getWritingArea();
+  const writingArea: HTMLTextAreaElement = await getWritingArea();
 
   writingArea.value += "\n\n";
 
@@ -78,16 +83,16 @@ export function insertTags(): void {
  * This function can be run on the view page or the edit page of a single blog
  * post on either domain.
  */
-export function getTitle(): string {
+export async function getTitle(): Promise<string> {
   if (onEditPage()) {
-    const writingArea: HTMLTextAreaElement = getWritingArea();
+    const writingArea: HTMLTextAreaElement = await getWritingArea();
     const writingAreaText = writingArea.value;
 
     return writingAreaText
       .substring(0, writingAreaText.indexOf("\n"))
       .replace(/^\s*#\s*/, "");
   } else {
-    const title: dom.NonNullElementProperty<"textContent"> = dom
+    const title: dom.NonNullElementProperty<"textContent"> = await dom
       .getNonNullElementProperty<HTMLTitleElement, "textContent">(
         "#post-body h2#title",
         "textContent",
@@ -104,8 +109,8 @@ export function getTitle(): string {
  * with hyphens, other non-alphanumeric characters are removed, and all
  * remaining characters are made lower-case.
  */
-export function getSlugForTitle(): string {
-  const title: string = getTitle();
+export async function getSlugForTitle(): Promise<string> {
+  const title: string = await getTitle();
 
   return title
     .replace(/^#\s*/, "")

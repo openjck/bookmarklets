@@ -33,8 +33,8 @@ function navigateToPostViewOnWriteAs(): void {
  * This function must be run while on the view page of a single blog post on the
  * write.as domain.
  */
-function getViewerCount(): number {
-  const viewsTextContent: dom.NonNullElementProperty<"textContent"> = dom
+async function getViewerCount(): Promise<number> {
+  const viewsTextContent: dom.NonNullElementProperty<"textContent"> = await dom
     .getNonNullElementProperty<HTMLSpanElement, "textContent">(
       "#post .views",
       "textContent",
@@ -79,8 +79,8 @@ function onDoneEditingKeystroke(fn: () => void): void {
  *
  * This function must be run on the edit page of a single blog post.
  */
-function verifyOneSetOfTags(): void {
-  const writingArea: HTMLTextAreaElement = blog.getWritingArea();
+async function verifyOneSetOfTags(): Promise<void> {
+  const writingArea: HTMLTextAreaElement = await blog.getWritingArea();
   const matches: RegExpMatchArray | null = writingArea.value.match(/\n\s*#/g);
   const numSetsOfTags: number = matches === null ? 0 : matches.length;
 
@@ -94,21 +94,21 @@ function verifyOneSetOfTags(): void {
   }
 }
 
-function publishChanges(): void {
-  const publishButton: HTMLButtonElement = dom.getElement<HTMLButtonElement>(
-    "button#publish",
-  );
+async function publishChanges(): Promise<void> {
+  const publishButton: HTMLButtonElement = await dom.getElement<
+    HTMLButtonElement
+  >("button#publish");
   publishButton.click();
 }
 
-function changeSlug(newSlug: string): void {
+async function changeSlug(newSlug: string): Promise<void> {
   blog.navigateToEditMetaPage();
 
-  const slugField: HTMLInputElement = dom.getElement<HTMLInputElement>(
+  const slugField: HTMLInputElement = await dom.getElement<HTMLInputElement>(
     "input#slug",
   );
 
-  const form: HTMLFormElement = dom.getElement<HTMLFormElement>("form");
+  const form: HTMLFormElement = await dom.getElement<HTMLFormElement>("form");
 
   slugField.value = newSlug;
 
@@ -117,9 +117,9 @@ function changeSlug(newSlug: string): void {
   navigation.removeFromCurrentPathnameAndNavigate("/edit/meta");
 }
 
-function conditionallyApplyNewSlug(viewerCount: number): void {
+async function conditionallyApplyNewSlug(viewerCount: number): Promise<void> {
   const currentSlug = blog.getSlug();
-  const newSlug = blog.getSlugForTitle();
+  const newSlug = await blog.getSlugForTitle();
 
   if (newSlug === currentSlug) {
     alert("The slug would not be changed.");
@@ -135,29 +135,31 @@ function conditionallyApplyNewSlug(viewerCount: number): void {
       'Press "OK" to change the slug or "Cancel" to leave it unchanged.';
 
     if (window.confirm(confirmationMessage)) {
-      changeSlug(newSlug);
+      await changeSlug(newSlug);
     } else {
       alert("The slug will not be changed.");
     }
   }
 }
 
-alertOnError((): void => {
+alertOnError(async (): Promise<void> => {
   // Get the number of viewers.
   navigateToPostViewOnWriteAs();
-  const viewerCount = getViewerCount();
+  const viewerCount: number = await getViewerCount();
 
   // Help the user set a new title and tags, if desired.
   blog.navigateToEditPage();
+
+  // TODO: We need to wait for the edit page to load first.
   blog.insertTags();
   showInstructionsEditTitleAndTags();
 
   // When the user presses "ALT+C", verify that the content looks okay, ask the
   // user if they want to change the slug, and change the slug if they want to.
-  onDoneEditingKeystroke(() => {
-    verifyOneSetOfTags();
-    publishChanges();
-    conditionallyApplyNewSlug(viewerCount);
+  onDoneEditingKeystroke(async () => {
+    await verifyOneSetOfTags();
+    await publishChanges();
+    await conditionallyApplyNewSlug(viewerCount);
     alert("The metadata update is complete!");
   });
 });
