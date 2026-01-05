@@ -145,7 +145,7 @@ export function navigateToEditPage(): void {
       "/edit",
     );
   } else if (navigation.atBaseUrl(baseUrls.writeAs)) {
-    navigation.appendToCurrentPathAndNavigate("/edit");
+    navigation.appendToCurrentPathnameAndNavigate("/edit");
   } else {
     throw new Error(
       `Not at "${baseUrls.writeAs}" or "${baseUrls.johnKarahalis}".`,
@@ -168,7 +168,7 @@ export function navigateToEditMetaPage(): void {
       "/edit/meta",
     );
   } else if (navigation.atBaseUrl(baseUrls.writeAs)) {
-    navigation.appendToCurrentPathAndNavigate("/edit/meta");
+    navigation.appendToCurrentPathnameAndNavigate("/edit/meta");
   } else {
     throw new Error(
       `Not at "${baseUrls.writeAs}" or "${baseUrls.johnKarahalis}".`,

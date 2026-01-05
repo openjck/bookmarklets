@@ -114,7 +114,7 @@ function changeSlug(newSlug: string): void {
 
   form.submit();
 
-  navigation.removeFromCurrentPathAndNavigate("/edit/meta");
+  navigation.removeFromCurrentPathnameAndNavigate("/edit/meta");
 }
 
 function conditionallyApplyNewSlug(viewerCount: number): void {

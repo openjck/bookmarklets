@@ -19,17 +19,17 @@ export function navigate(url: string): void {
  * "/about/me/contact", not "/about//me/contact".
  *
  * @param urlString - A URL which should have its pathname appended to.
- * @param pathnameAddition - A string to append to the pathname of the provided
- *                           URL.
+ * @param addition - A string to append to the pathname of the provided URL.
+ *
  * @returns The provided URL with the provided addition appended to the
  *          pathname.
  */
-export function appendToPath(
+export function appendToPathname(
   urlString: string,
-  pathnameAddition: string,
+  addition: string,
 ): string {
-  const url = new URL(urlString);
-  url.pathname = url.pathname.replace(/\/?$/, pathnameAddition);
+  const url: URL = new URL(urlString);
+  url.pathname = url.pathname.replace(/\/?$/, addition);
   return url.href;
 }
 
@@ -37,16 +37,16 @@ export function appendToPath(
  * Remove string from end of the pathname of the given URL without navigating.
  *
  * @param urlString - A URL which should have its pathname removed from.
- * @param pathnameAddition - A string to remove from to the pathname of the
- *                           provided URL.
+ * @param removal - A string to remove from to the pathname of the provided URL.
+ *
  * @returns The provided URL with the provided removal removed from the
  *          pathname.
  */
-export function removeFromEndOfPath(
+export function removeFromEndOfPathname(
   urlString: string,
   removal: string,
 ): string {
-  const url = new URL(urlString);
+  const url: URL = new URL(urlString);
   url.pathname = removeFromEnd(url.pathname, removal);
   return url.href;
 }
@@ -62,14 +62,16 @@ export function removeFromEndOfPath(
  *
  * @param urlString - A URL which should have its pathname appended to such that
  *                    the resulting URL is navigated to.
- * @param pathnameAddition - A string to append to the pathname of the provided
- *                           URL before navigating to the resulting URL.
+ * @param addition - A string to append to the pathname of the provided URL
+ *                   before navigating to the resulting URL.
  */
 export function appendToPathAndNavigate(
   urlString: string,
   addition: string,
 ): void {
-  navigate(appendToPath(urlString, addition));
+  const url: URL = new URL(urlString);
+  url.pathname = appendToPathname(url.href, addition);
+  navigate(url.href);
 }
 
 /**
@@ -77,9 +79,8 @@ export function appendToPathAndNavigate(
  *
  * @param urlString - A URL which should have its pathname removed from such
  *                    that the resulting URL is navigated to.
- * @param pathnameAddition - A string to remove from to the pathname of the
- *                           provided URL before navigating to the resulting
- *                           URL.
+ * @param removal - A string to remove from to the pathname of the provided URL
+ *                  before navigating to the resulting URL.
  * @returns The provided URL with the provided removal removed from the
  *          pathname.
  */
@@ -87,7 +88,9 @@ export function removeFromEndOfPathAndNavigate(
   urlString: string,
   removal: string,
 ): void {
-  navigate(removeFromEndOfPath(urlString, removal));
+  const url: URL = new URL(urlString);
+  url.pathname = removeFromEndOfPathname(url.href, removal);
+  navigate(url.href);
 }
 
 /**
@@ -99,23 +102,23 @@ export function removeFromEndOfPathAndNavigate(
  * In other words, following this same example, the resulting pathname would be
  * "/about/me/contact", not "/about//me/contact".
  *
- * @param pathnameAddition - A string to append to the pathname of the current
- *                           URL before navigating to the resulting URL.
+ * @param addition - A string to append to the pathname of the current URL
+ *                   before navigating to the resulting URL.
  */
-export function appendToCurrentPathAndNavigate(toAdd: string): void {
-  window.location.pathname = appendToPath(window.location.pathname, toAdd);
+export function appendToCurrentPathnameAndNavigate(addition: string): void {
+  window.location.href = appendToPathname(window.location.href, addition);
 }
 
 /**
  * Remove string from end of the pathname of the current URL and navigate to it.
  *
- * @param pathnameAddition - A string to remove from to the pathname of the
- *                           current URL before navigating to the resulting URL.
+ * @param removal - A string to remove from to the pathname of the current URL
+ *                  before navigating to the resulting URL.
  */
-export function removeFromCurrentPathAndNavigate(toRemove: string): void {
-  window.location.pathname = removeFromEndOfPath(
-    window.location.pathname,
-    toRemove,
+export function removeFromCurrentPathnameAndNavigate(removal: string): void {
+  window.location.href = removeFromEndOfPathname(
+    window.location.href,
+    removal,
   );
 }
 
