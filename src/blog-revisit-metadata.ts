@@ -145,6 +145,18 @@ async function conditionallyApplyNewSlug(viewerCount: number): Promise<void> {
 // esbuild when using the "iife" format, as we are in this project, making this
 // additional, "inner" IIFE necessary.
 (async () => {
+  // FIXME: This doesn't work because JavaScript stops executing before a page
+  // navigation, and it does not resume executing on the page that is loaded.
+  //
+  // Bookmarklets may not be the best tool for what I'm trying to achieve here.
+  // Perhaps some kind of browser automation like Selenium or Playwright would
+  // be better. Maybe add-ons like Greasemonkey have a pattern for dealing with
+  // this situation, since I'm sure users of those add-ons have run into this
+  // problem.
+  //
+  // A workaround might be to create multiple bookmarklets for this purpose, one
+  // for each page, and to execute them one-after-another after page navigation.
+
   // Get the number of viewers.
   navigateToPostViewOnWriteAs();
   const viewerCount: number = await getViewerCount();
@@ -152,7 +164,6 @@ async function conditionallyApplyNewSlug(viewerCount: number): Promise<void> {
   // Help the user set a new title and tags, if desired.
   blog.navigateToEditPage();
 
-  // TODO: We need to wait for the edit page to load first.
   blog.insertTags();
   showInstructionsEditTitleAndTags();
 
