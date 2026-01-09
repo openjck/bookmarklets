@@ -1,18 +1,18 @@
 /**
- * Copy the official URL of the current blog post to the clipboard.
+ * Copy the public-facing URL of the current page to the clipboard.
  */
 
-import { getOfficialUrl } from "./utils/blog.ts";
+import { getPublicFacingUrl } from "./utils/blog.ts";
 import { alertOnError } from "./utils/general.ts";
 
 alertOnError(async () => {
-  const officialUrl: string = getOfficialUrl();
+  const publicFacingUrl: string = getPublicFacingUrl();
 
-  await navigator.clipboard.writeText(officialUrl);
+  await navigator.clipboard.writeText(publicFacingUrl);
 
   alert(
-    "The official URL was successfully copied to clipboard. The URL is:\n" +
+    "The public-facing URL was copied to clipboard. The URL is:\n" +
       "\n" +
-      officialUrl,
+      publicFacingUrl,
   );
 });

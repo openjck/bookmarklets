@@ -291,9 +291,7 @@ export function getSlug(): string {
 }
 
 /**
- * TODO: Next
- *
- * Navigate to the same blog page, but on the opposing domain.
+ * Navigate to the same page on the opposite domain.
  *
  * My blog is hosted by write.as and made available to readers at both the
  * write.as domain and the blog.johnkarahalis.com domain. I can edit posts when
@@ -302,9 +300,9 @@ export function getSlug(): string {
  * links with others, I almost always want to share the URL with the
  * blog.johnkarahalis.com domain.
  *
- * This function swaps between them. If I'm viewing a post or other page on the
- * write.as domain, it navigates to that page on the blog.johnkarahalis.com
- * domain, and vice versa.
+ * This function swaps between them. If I'm viewing a post or at some other page
+ * on the write.as domain, it navigates to that same page on the
+ * blog.johnkarahalis.com domain, and vice versa.
  */
 export function toggleDomain(): void {
   if (navigation.atBaseUrl(baseUrls.writeAs)) {
@@ -327,7 +325,19 @@ export function toggleDomain(): void {
   }
 }
 
-export function getOfficialUrl(): string {
+/**
+ * Get the public-facing URL of the current page.
+ *
+ * My blog is hosted by write.as and made available to readers at both the
+ * write.as domain and the blog.johnkarahalis.com domain. The latter is the
+ * "public-facing" URL, since it's the one that I link to and share with others.
+ *
+ * This function returns the public-facing version of the page that is currently
+ * loaded, regardless of the domain of the page that is currently loaded.
+ *
+ * @returns The public-facing URL of the current page.
+ */
+export function getPublicFacingUrl(): string {
   let officialUrl: string;
 
   if (navigation.atBaseUrl(baseUrls.writeAs)) {
