@@ -5,5 +5,6 @@
  */
 
 import { insertTags } from "./utils/blog.ts";
+import { alertOnError } from "./utils/general.ts";
 
-insertTags();
+alertOnError(insertTags);

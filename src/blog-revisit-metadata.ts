@@ -13,6 +13,7 @@
 import * as dom from "./utils/dom.ts";
 import * as navigation from "./utils/navigation.ts";
 import * as blog from "./utils/blog.ts";
+import { alertOnError } from "./utils/general.ts";
 
 /**
  * Navigate to the view page of a blog post on the write.as domain.
@@ -143,10 +144,7 @@ async function conditionallyApplyNewSlug(viewerCount: number): Promise<void> {
   }
 }
 
-// At the time of this writing (2026-01-05), top-level await is not supported by
-// esbuild when using the "iife" format, as we are in this project, making this
-// additional, "inner" IIFE necessary.
-(async () => {
+alertOnError(async () => {
   // FIXME: This doesn't work because JavaScript stops executing before a page
   // navigation, and it does not resume executing on the page that is loaded.
   //
@@ -177,4 +175,4 @@ async function conditionallyApplyNewSlug(viewerCount: number): Promise<void> {
     await conditionallyApplyNewSlug(viewerCount);
     alert("The metadata update is complete!");
   });
-})();
+});
