@@ -112,33 +112,44 @@ export async function insertTags(): Promise<void> {
 }
 
 /**
- * TODO: Next
+ * Return the title of the current blog post, or `null` if there is no title.
  *
- * Return the title of the currently-loaded blog post.
+ * This function can be called from either the view page of a single blog post
+ * or the edit page of a single blog post.
  *
- * This function can be run on the view page or the edit page of a single blog
- * post on either domain.
+ * @return A promise which resolves to either the title of the blog post (if
+ *         there is a title) or `null` (if there is no title).
  */
-export async function getTitle(): Promise<string> {
+export async function getTitle(): Promise<string|null> {
   if (onEditPage()) {
     const writingArea: HTMLTextAreaElement = await getWritingArea();
     const writingAreaText = writingArea.value;
 
-    return writingAreaText
+    const title = writingAreaText
       .substring(0, writingAreaText.indexOf("\n"))
       .replace(/^\s*#\s*/, "");
-  } else {
-    const title: dom.NonNullElementProperty<"textContent"> = await dom
-      .getNonNullElementProperty<HTMLTitleElement, "textContent">(
-        "#post-body h2#title",
-        "textContent",
-      );
+
+    if (title === "") {
+      return null;
+    }
 
     return title;
+  } else {
+    const titleElement: HTMLHeadingElement = await
+      dom.getElement<HTMLHeadingElement>("#post-body h2#title");
+
+    if (titleElement === null || titleElement.textContent === null) {
+      return null;
+    }
+
+    return titleElement.textContent;
   }
 }
 
 /**
+ * TODO: Next
+ *
+ *
  * Convert the title to a slug. The leading pound sign and whitespace are
  * removed. After that, we follow that same apparent algorithm that WriteFreely
  * uses, where underscores and hyphens are preserved, all whitespace is replaced
