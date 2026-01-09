@@ -178,11 +178,22 @@ export async function getSlugForTitle(): Promise<string | null> {
     .toLowerCase();
 }
 
-// TODO: Next
-export function pageIsEditable(urlStr: string): boolean {
+/**
+ * Return `true` if the page at the given URL can be edited with WriteFreely.
+ *
+ * @param urlStr - The URL of the page that should be tested for editability.
+ *
+ * @return `true` if the page at the given URL can be edited on Write.as,
+ * otherwise `false`.
+ */
+export function isEditable(urlStr: string): boolean {
   const url = new URL(urlStr);
 
   if (
+    (
+      !navigation.atBaseUrl(baseUrls.writeAs) &&
+      !navigation.atBaseUrl(baseUrls.johnkarahalis)
+    ) ||
     url.pathname === "/" ||
     url.pathname.startsWith("/page/") ||
     url.pathname === "/johnkarahalis/" ||
@@ -195,13 +206,14 @@ export function pageIsEditable(urlStr: string): boolean {
   return true;
 }
 
+// TODO: Next
 export function navigateToEditPage(): void {
   if (onEditPage()) {
     alert("You are already on the edit page.");
     return;
   }
 
-  if (!pageIsEditable(window.location.href)) {
+  if (!isEditable(window.location.href)) {
     alert("This page cannot be edited.");
     return;
   }
@@ -226,7 +238,7 @@ export function navigateToEditMetaPage(): void {
     return;
   }
 
-  if (!pageIsEditable(window.location.href)) {
+  if (!isEditable(window.location.href)) {
     alert("This page cannot be edited.");
     return;
   }
