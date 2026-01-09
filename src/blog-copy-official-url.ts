@@ -6,7 +6,7 @@ import { getPublicFacingUrl } from "./utils/blog.ts";
 import { alertOnError } from "./utils/general.ts";
 
 alertOnError(async () => {
-  const publicFacingUrl: string = getPublicFacingUrl();
+  const publicFacingUrl: string = getPublicFacingUrl(window.location.href);
 
   await navigator.clipboard.writeText(publicFacingUrl);
 

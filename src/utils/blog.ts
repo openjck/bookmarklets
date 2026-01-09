@@ -51,28 +51,40 @@ export async function getWritingArea(
 }
 
 /**
- * Return `true` if the user is currently on the edit page of a blog post.
+ * Return `true` if the provided URL is the URL of a WriteFreely edit page.
  *
- * @returns `true` if the user is currently on the edit page of a blog post.
+ * @param urlStr - The URL of the page to test.
+ *
+ * @returns `true` if the provided URL is the URL of a WriteFreely edit page,
+ *          otherwise `false`.
  */
-export function onEditPage(): boolean {
-  return window.location.href.startsWith(baseUrls.writeAs) &&
-    window.location.pathname.endsWith("/edit");
+export function isEditPage(urlStr: string): boolean {
+  const url: URL = new URL(urlStr);
+
+  return url.href.startsWith(baseUrls.writeAs) &&
+    url.pathname.endsWith("/edit");
 }
 
 /**
- * Return `true` if the user is on the "Edit metadata" page of a blog post.
+ * Return `true` if the provided URL is of a WriteFreely "Edit metadata" page.
  *
- * @returns `true` if the user is on the "Edit metadata" page of a blog post.
+ * @param urlStr - The URL of the page to test.
+ *
+ * @returns `true` if the provided URL is the URL of a WriteFreely "Edit
+ *          metadata" page, otherwise `false`.
  */
-export function onEditMetaPage(): boolean {
-  const pathname: string = window.location.pathname;
-  return pathname.startsWith(baseUrls.writeAs) &&
-    pathname.endsWith("/edit/meta");
+export function isEditMetaPage(urlStr: string): boolean {
+  const url: URL = new URL(urlStr);
+
+  return url.href.startsWith(baseUrls.writeAs) &&
+    url.pathname.endsWith("/edit/meta");
 }
 
 /**
  * Insert all tags used on the blog at the bottom of the writing area.
+ *
+ * Precondition: This function can be called from the edit page of a single blog
+ * post.
  *
  * Tags are added two newlines below the current text in the writing area. Tags
  * are separated by spaces, and each tag begins with the pound sign.
@@ -121,7 +133,7 @@ export async function insertTags(): Promise<void> {
  *          there is a title) or `null` (if there is no title).
  */
 export async function getTitle(): Promise<string | null> {
-  if (onEditPage()) {
+  if (isEditPage(window.location.href)) {
     const writingArea: HTMLTextAreaElement = await getWritingArea();
     const writingAreaText = writingArea.value;
 
@@ -215,7 +227,7 @@ export function isEditable(urlStr: string): boolean {
  * blog post, on either domain.
  */
 export function navigateToEditPage(): void {
-  if (onEditPage()) {
+  if (isEditPage(window.location.href)) {
     alert("You are already on the edit page.");
     return;
   }
@@ -246,7 +258,7 @@ export function navigateToEditPage(): void {
  * blog post, on either domain.
  */
 export function navigateToEditMetaPage(): void {
-  if (onEditMetaPage()) {
+  if (isEditMetaPage(window.location.href)) {
     alert('You are already on the "Edit metadata" page.');
     return;
   }
@@ -326,32 +338,38 @@ export function toggleDomain(): void {
 }
 
 /**
- * Get the public-facing URL of the current page.
+ * Get the public-facing version of the given URL.
  *
  * My blog is hosted by write.as and made available to readers at both the
  * write.as domain and the blog.johnkarahalis.com domain. The latter is the
  * "public-facing" URL, since it's the one that I link to and share with others.
  *
- * This function returns the public-facing version of the page that is currently
- * loaded, regardless of the domain of the page that is currently loaded.
+ * This function returns the public-facing version of the given URL regardless
+ * of the domain of the given URL.
+ *
+ * @param urlStr - The URL whose public-facing version should be returned.
  *
  * @returns The public-facing URL of the current page.
  */
-export function getPublicFacingUrl(): string {
-  let officialUrl: string;
+export function getPublicFacingUrl(urlStr: string): string {
+  const url: URL = new URL(urlStr);
 
-  if (navigation.atBaseUrl(baseUrls.writeAs)) {
-    officialUrl = window.location.href.replace(
+  let publicFacingUrl: string;
+  if (navigation.isBaseUrl(baseUrls.writeAs, window.location.href)) {
+    publicFacingUrl = url.href.replace(
       baseUrls.writeAs,
       baseUrls.johnKarahalis,
     );
-  } else if (navigation.atBaseUrl(baseUrls.johnKarahalis)) {
-    officialUrl = window.location.href;
+  } else if (
+    navigation.isBaseUrl(baseUrls.johnKarahalis, window.location.href)
+  ) {
+    publicFacingUrl = url.href;
   } else {
     throw new Error(
-      `Not at "${baseUrls.writeAs}" or "${baseUrls.johnKarahalis}".`,
+      `URL must have a base of "${baseUrls.writeAs}" or ` +
+        `"${baseUrls.johnKarahalis}".`,
     );
   }
 
-  return officialUrl;
+  return publicFacingUrl;
 }
