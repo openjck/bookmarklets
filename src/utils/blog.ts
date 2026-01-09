@@ -148,17 +148,28 @@ export async function getTitle(): Promise<string | null> {
 }
 
 /**
- * TODO: Next
+ * Return a slug for the current blog post, based on the title, or `null`.
  *
+ * This algorithm follows the same apparent algorithm that Write.as itself seems
+ * to follow when it converts a title to a slug, which it does only when the
+ * blog post is first published: underscores and hyphens are preserved, all
+ * whitespace is replaced with hyphens, other non-alphanumeric characters are
+ * removed, and all remaining characters are made lower-case.
  *
- * Convert the title to a slug. The leading pound sign and whitespace are
- * removed. After that, we follow that same apparent algorithm that WriteFreely
- * uses, where underscores and hyphens are preserved, all whitespace is replaced
- * with hyphens, other non-alphanumeric characters are removed, and all
- * remaining characters are made lower-case.
+ * If a title cannot be found, `null` is returned.
+ *
+ * This function can be called from either the view page of a single blog post
+ * or the edit page of a single blog post.
+ *
+ * @return A promise which resolves to either a slug for the current blog post,
+ *         based on the title, or `null` if a title cannot be found.
  */
-export async function getSlugForTitle(): Promise<string> {
-  const title: string = await getTitle();
+export async function getSlugForTitle(): Promise<string | null> {
+  const title: string | null = await getTitle();
+
+  if (title === null) {
+    return null;
+  }
 
   return title
     .replace(/^#\s*/, "")
@@ -167,6 +178,7 @@ export async function getSlugForTitle(): Promise<string> {
     .toLowerCase();
 }
 
+// TODO: Next
 export function pageIsEditable(urlStr: string): boolean {
   const url = new URL(urlStr);
 
