@@ -1,11 +1,17 @@
 import * as dom from "./dom.ts";
 import * as navigation from "./navigation.ts";
 
+/**
+ * Important base URLs for managing the blog. All other paths start with these.
+ */
 export const baseUrls: Record<string, string> = {
   writeAs: "https://write.as/johnkarahalis/",
   johnKarahalis: "https://blog.johnkarahalis.com/",
 };
 
+/**
+ * All tags used on the blog, with the pound symbol prefix at the start of each.
+ */
 export const tagVocabulary: string[] = [
   "#Article",
   "#Favorites",
@@ -21,8 +27,18 @@ export const tagVocabulary: string[] = [
   "#TechTips",
 ];
 
+/**
+ * Return the HTML element that the user types in to write or edit a blog post.
+ *
+ * @param [timeout=0] - A time duration in milliseconds, after which the promise
+ *                      should reject with an `Error` if the element could not
+ *                      be found.
+ *
+ * @returns A Promise which resolves to the HTML element that the user types in
+ *          to write or edit a blog post.
+ */
 export async function getWritingArea(
-  timeout: number | undefined = undefined,
+  timeout: number = 0,
 ): Promise<HTMLTextAreaElement> {
   const writingArea: HTMLTextAreaElement = await dom.getElement<
     HTMLTextAreaElement
@@ -35,7 +51,7 @@ export async function getWritingArea(
 }
 
 /**
- * Return true if the user is currently on the edit page of a blog post.
+ * Return `true` if the user is currently on the edit page of a blog post.
  *
  * @return `true` if the user is currently on the edit page of a blog post.
  */
@@ -45,7 +61,9 @@ export function onEditPage(): boolean {
 }
 
 /**
- * Return true if the user is currently on the "Edit metadata" page of a post.
+ * Return `true` if the user is on the "Edit metadata" page of a blog post.
+ *
+ * @return `true` if the user is on the "Edit metadata" page of a blog post.
  */
 export function onEditMetaPage(): boolean {
   const pathname: string = window.location.pathname;
@@ -53,6 +71,22 @@ export function onEditMetaPage(): boolean {
     pathname.endsWith("/edit/meta");
 }
 
+/**
+ * Insert all tags used on the blog at the bottom of the writing area.
+ *
+ * Tags are added two newlines below the current text in the writing area. Tags
+ * are separated by spaces, and each tag begins with the pound sign.
+ *
+ * For example, this:
+ *
+ *   Hello, world!
+ *
+ * Will become this:
+ *
+ *   Hello, world!
+ *
+     #Article #Favorites #FiveWordMovieReview...
+ */
 export async function insertTags(): Promise<void> {
   // This needs to be done here, not in setRangeText, because if it were done
   // in setRangeText, after the text was inserted, the cursor would move to the
@@ -78,6 +112,8 @@ export async function insertTags(): Promise<void> {
 }
 
 /**
+ * TODO: Next
+ *
  * Return the title of the currently-loaded blog post.
  *
  * This function can be run on the view page or the edit page of a single blog
@@ -137,11 +173,13 @@ export function pageIsEditable(urlStr: string): boolean {
 
 export function navigateToEditPage(): void {
   if (onEditPage()) {
-    throw new Error("You are already on the edit page.");
+    alert("You are already on the edit page.");
+    return;
   }
 
   if (!pageIsEditable(window.location.href)) {
-    throw new Error("This page cannot be edited.");
+    alert("This page cannot be edited.");
+    return;
   }
 
   if (navigation.atBaseUrl(baseUrls.johnKarahalis)) {
@@ -160,11 +198,13 @@ export function navigateToEditPage(): void {
 
 export function navigateToEditMetaPage(): void {
   if (onEditMetaPage()) {
-    throw new Error('You are already on the "Edit metadata" page.');
+    alert('You are already on the "Edit metadata" page.');
+    return;
   }
 
   if (!pageIsEditable(window.location.href)) {
-    throw new Error("This page cannot be edited.");
+    alert("This page cannot be edited.");
+    return;
   }
 
   if (navigation.atBaseUrl(baseUrls.johnKarahalis)) {
