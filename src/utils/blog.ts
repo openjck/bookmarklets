@@ -53,7 +53,7 @@ export async function getWritingArea(
 /**
  * Return `true` if the user is currently on the edit page of a blog post.
  *
- * @return `true` if the user is currently on the edit page of a blog post.
+ * @returns `true` if the user is currently on the edit page of a blog post.
  */
 export function onEditPage(): boolean {
   return window.location.href.startsWith(baseUrls.writeAs) &&
@@ -63,7 +63,7 @@ export function onEditPage(): boolean {
 /**
  * Return `true` if the user is on the "Edit metadata" page of a blog post.
  *
- * @return `true` if the user is on the "Edit metadata" page of a blog post.
+ * @returns `true` if the user is on the "Edit metadata" page of a blog post.
  */
 export function onEditMetaPage(): boolean {
   const pathname: string = window.location.pathname;
@@ -114,11 +114,11 @@ export async function insertTags(): Promise<void> {
 /**
  * Return the title of the current blog post, or `null` if there is no title.
  *
- * This function can be called from either the view page of a single blog post
- * or the edit page of a single blog post.
+ * Precondition: This function can be called from either the view page of
+ * a single blog post or the edit page of a single blog post, on either domain.
  *
- * @return A promise which resolves to either the title of the blog post (if
- *         there is a title) or `null` (if there is no title).
+ * @returns A promise which resolves to either the title of the blog post (if
+ *          there is a title) or `null` (if there is no title).
  */
 export async function getTitle(): Promise<string | null> {
   if (onEditPage()) {
@@ -158,11 +158,11 @@ export async function getTitle(): Promise<string | null> {
  *
  * If a title cannot be found, `null` is returned.
  *
- * This function can be called from either the view page of a single blog post
- * or the edit page of a single blog post.
+ * Precondition: This function can be called from either the view page of
+ * a single blog post or the edit page of a single blog post, on either domain.
  *
- * @return A promise which resolves to either a slug for the current blog post,
- *         based on the title, or `null` if a title cannot be found.
+ * @returns A promise which resolves to either a slug for the current blog post,
+ *          based on the title, or `null` if a title cannot be found.
  */
 export async function getSlugForTitle(): Promise<string | null> {
   const title: string | null = await getTitle();
@@ -183,7 +183,7 @@ export async function getSlugForTitle(): Promise<string | null> {
  *
  * @param urlStr - The URL of the page that should be tested for editability.
  *
- * @return `true` if the page at the given URL can be edited on Write.as,
+ * @returns `true` if the page at the given URL can be edited on Write.as,
  * otherwise `false`.
  */
 export function isEditable(urlStr: string): boolean {
@@ -198,7 +198,9 @@ export function isEditable(urlStr: string): boolean {
     url.pathname.startsWith("/page/") ||
     url.pathname === "/johnkarahalis/" ||
     url.pathname.startsWith("/johnkarahalis/page/") ||
-    url.pathname.startsWith("/me/")
+    url.pathname.startsWith("/me/") ||
+    url.pathname.endsWith("/edit") ||
+    url.pathname.endsWith("/edit/meta")
   ) {
     return false;
   }
@@ -206,7 +208,12 @@ export function isEditable(urlStr: string): boolean {
   return true;
 }
 
-// TODO: Next
+/**
+ * Navigate to the edit page of the blog post whose view page is loaded.
+ *
+ * Precondition: This must be run when the user is on the view page of a single
+ * blog post, on either domain.
+ */
 export function navigateToEditPage(): void {
   if (onEditPage()) {
     alert("You are already on the edit page.");
@@ -232,6 +239,12 @@ export function navigateToEditPage(): void {
   }
 }
 
+/**
+ * Navigate to the "Edit metadata" page of the blog post whose view is loaded.
+ *
+ * Precondition: This must be run when the user is on the view page of a single
+ * blog post, on either domain.
+ */
 export function navigateToEditMetaPage(): void {
   if (onEditMetaPage()) {
     alert('You are already on the "Edit metadata" page.');
@@ -258,10 +271,14 @@ export function navigateToEditMetaPage(): void {
 }
 
 /**
- * Return the slug of the currently loaded blog post.
+ * Get the slug of the currently-loaded blog post.
  *
- * This function must be called from the view page of a single blog post on
- * either domain.
+ * Precondition: This function must be called from the view page of a single
+ * blog post, on either domain.
+ *
+ * @throws {Error} If the slug cannot be found.
+ *
+ * @returns The slug of the currently-loaded blog post.
  */
 export function getSlug(): string {
   const slug = window.location.pathname.split("/").pop();
@@ -274,6 +291,8 @@ export function getSlug(): string {
 }
 
 /**
+ * TODO: Next
+ *
  * Navigate to the same blog page, but on the opposing domain.
  *
  * My blog is hosted by write.as and made available to readers at both the

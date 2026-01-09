@@ -2,8 +2,8 @@
  * Revisit and potentially change the title, tags, and/or slug of a single blog
  * post.
  *
- * This bookmarklet must be run on the view page of a single blog post, on
- * either domain.
+ * Precondition: This bookmarklet must be run on the view page of a single blog
+ * post, on either domain.
  *
  * I want to revisit these things because I only really started using titles
  * halfway through the thoughts migration, and I only really finalized my tag
@@ -18,8 +18,8 @@ import { alertOnError } from "./utils/general.ts";
 /**
  * Navigate to the view page of a blog post on the write.as domain.
  *
- * This function must be run on the view page of a single blog post, on either
- * domain.
+ * Precondition: This function must be run on the view page of a single blog
+ * post, on either domain.
  */
 function navigateToPostViewOnWriteAs(): void {
   if (navigation.atBaseUrl(blog.baseUrls.johnKarahalis)) {
@@ -30,8 +30,8 @@ function navigateToPostViewOnWriteAs(): void {
 /**
  * Get the number of viewers of the currently-loaded blog post.
  *
- * This function must be run while on the view page of a single blog post on the
- * write.as domain.
+ * Precondition: This function must be run while on the view page of a single
+ * blog post, on the write.as domain.
  */
 async function getViewerCount(): Promise<number> {
   const viewsTextContent: dom.NonNullElementProperty<"textContent"> = await dom
@@ -73,11 +73,12 @@ function onDoneEditingKeystroke(fn: () => void): void {
 /**
  * Verify that the blog post being edited contains exactly one set of tags.
  *
+ * Precondition: This function must be run on the edit page of a single blog
+ * post.
+ *
  * If fewer or greater than one set of tags is found, prompt the user to use
  * exactly one set of tags and subsequently press "ALT+C", then run this
  * function again after "ALT+C" is pressed.
- *
- * This function must be run on the edit page of a single blog post.
  */
 async function verifyOneSetOfTags(): Promise<void> {
   const writingArea: HTMLTextAreaElement = await blog.getWritingArea();
