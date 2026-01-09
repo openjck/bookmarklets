@@ -120,7 +120,7 @@ export async function insertTags(): Promise<void> {
  * @return A promise which resolves to either the title of the blog post (if
  *         there is a title) or `null` (if there is no title).
  */
-export async function getTitle(): Promise<string|null> {
+export async function getTitle(): Promise<string | null> {
   if (onEditPage()) {
     const writingArea: HTMLTextAreaElement = await getWritingArea();
     const writingAreaText = writingArea.value;
@@ -135,8 +135,9 @@ export async function getTitle(): Promise<string|null> {
 
     return title;
   } else {
-    const titleElement: HTMLHeadingElement = await
-      dom.getElement<HTMLHeadingElement>("#post-body h2#title");
+    const titleElement: HTMLHeadingElement = await dom.getElement<
+      HTMLHeadingElement
+    >("#post-body h2#title");
 
     if (titleElement === null || titleElement.textContent === null) {
       return null;
