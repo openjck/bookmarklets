@@ -120,7 +120,9 @@ async function conditionallyApplyNewSlug(viewerCount: number): Promise<void> {
   const currentSlug = blog.getSlug();
   const newSlug = await blog.getSlugForTitle();
 
-  if (newSlug === currentSlug) {
+  if (newSlug === null) {
+    throw new Error("A new slug could not be generated.");
+  } else if (newSlug === currentSlug) {
     alert("The slug would not be changed.");
   } else {
     const confirmationMessage = `There have been ${viewerCount} viewers.\n` +
