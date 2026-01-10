@@ -1,7 +1,10 @@
+These are my personal bookmarklets, written in TypeScript and built by Deno.
+
 ## To build bookmarklets
 
-1. Run `npm ci`.
-2. Run `npm run build`.
+1. Install [Deno](https://deno.com/).
+2. Clone this repo and navigate to it's root directory.
+3. Run `deno task build`.
 
 ## To use bookmarklets
 
