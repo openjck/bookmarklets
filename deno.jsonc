@@ -1,12 +1,18 @@
 {
-  "imports": {
-    "esbuildBookmarkletPlugin": "https://deno.land/x/esbuild_plugin_bookmarklet@v1.0.0/mod.js",
-    "esbuild": "https://deno.land/x/esbuild@v0.27.2/mod.js",
-    "@std/path": "jsr:@std/path@1.1.4"
-  },
-  "compilerOptions": { // Configure the TypeScript compiler.
+  // Configure the TypeScript compiler.
+  "compilerOptions": {
     // Allow new JavaScript features and DOM-related globals.
     "lib": ["esnext", "deno.ns", "dom", "dom.iterable"]
+  },
+  // Exclude these directories from everything, including formatting, linting,
+  // and more.
+  "exclude": [
+    "dist/"
+  ],
+  "imports": {
+    "@std/path": "jsr:@std/path@1.1.4",
+    "esbuildBookmarkletPlugin": "https://deno.land/x/esbuild_plugin_bookmarklet@v1.0.0/mod.js",
+    "esbuild": "https://deno.land/x/esbuild@v0.27.2/mod.js"
   },
   "lint": {
     "rules": {
@@ -15,11 +21,6 @@
       ]
     }
   },
-  // Exclude these directories from everything, including formatting, linting,
-  // and more.
-  "exclude": [
-    "dist/"
-  ],
   "tasks": {
     "build": "deno --allow-write --allow-read --allow-env --allow-run bin/build.ts",
     "format": "deno fmt",
