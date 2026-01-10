@@ -349,6 +349,9 @@ export function toggleDomain(): void {
  *
  * @param urlStr - The URL whose public-facing version should be returned.
  *
+ * @throws {Error} If the URL does not have a base which allows it to be
+ *                 converted to a public-facing URL
+ *
  * @returns The public-facing URL of the current page.
  */
 export function getPublicFacingUrl(urlStr: string): string {

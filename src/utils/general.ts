@@ -9,22 +9,22 @@
  * @param [customAlertMessage] - A custom message to show in the `alert`,
  *                               overriding the default.
  */
-export function alertOnError(
-  fn: () => void,
+export async function alertOnError(
+  fn: () => void | Promise<void>,
   customAlertMessage: string | undefined = undefined,
-): void {
-  // Although this could be set as a default parameter value, it would make the
-  // lines for the function signature and the JSDoc documentation very long, so
-  // it's being done this way to avoid those problems.
-  const defaultAlertMessage =
-    "⛔ An error occurred. See the console for more information.";
-
-  const alertMessage = customAlertMessage || defaultAlertMessage;
-
+): Promise<void> {
   try {
-    fn();
+    await fn();
   } catch (err: unknown) {
-    console.log(err);
+    // Although this could be set as a default parameter value, it would make the
+    // lines for the function signature and the JSDoc documentation very long, so
+    // it's being done this way to avoid those problems.
+    const defaultAlertMessage =
+      "An error has occurred.\n\nSee the console for more information.";
+
+    const alertMessage = customAlertMessage || defaultAlertMessage;
+
+    console.error(err);
     alert(alertMessage);
   }
 }
