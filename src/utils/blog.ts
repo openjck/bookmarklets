@@ -106,6 +106,12 @@ export function isEditMetaPage(urlStr: string): boolean {
      #Article #Favorites #FiveWordMovieReview...
  */
 export async function insertTags(): Promise<void> {
+  if (!isEditPage(window.location.href)) {
+    throw new BookmarkletError(
+      "This bookmarklet must be run on the edit page of a single blog post.",
+    );
+  }
+
   // This needs to be done here, not in setRangeText, because if it were done
   // in setRangeText, after the text was inserted, the cursor would move to the
   // the location before any text was inserted, which would be _before_ the
