@@ -31,8 +31,14 @@ function navigateToPostViewOnWriteAs(): void {
 /**
  * Get the number of viewers of the currently-loaded blog post.
  *
+ * The number that is returned is reported by write.as according to its own
+ * statistics.
+ *
  * Precondition: This function must be run while on the view page of a single
  * blog post, on the write.as domain.
+ *
+ * @return A promise that resolves to the number of viewers of the
+ *         currently-loaded blog post, according to write.as statistics.
  */
 async function getViewerCount(): Promise<number> {
   const viewsTextContent: dom.NonNullElementProperty<"textContent"> = await dom
@@ -60,7 +66,9 @@ function showInstructionsEditTitleAndTags(): void {
 }
 
 /**
- * Run a function when "ALT+C" is pressed.
+ * Run a function when the "done editing" keystroke (ALT+C) is pressed.
+ *
+ * @param fn - The function to run when the "done editing" keystroke is pressed.
  */
 function onDoneEditingKeystroke(fn: () => void): void {
   document.addEventListener("keydown", (e: KeyboardEvent) => {
@@ -78,8 +86,8 @@ function onDoneEditingKeystroke(fn: () => void): void {
  * post.
  *
  * If fewer or greater than one set of tags is found, prompt the user to use
- * exactly one set of tags and subsequently press "ALT+C", then run this
- * function again after "ALT+C" is pressed.
+ * exactly one set of tags and subsequently use the "done editing" keystroke
+ * (ALT+C), then run this function again after the keystroke is pressed.
  */
 async function verifyOneSetOfTags(): Promise<void> {
   const writingArea: HTMLTextAreaElement = await blog.getWritingArea();
@@ -96,6 +104,9 @@ async function verifyOneSetOfTags(): Promise<void> {
   }
 }
 
+/**
+ * Publish changes currently shown on the edit page.
+ */
 async function publishChanges(): Promise<void> {
   const publishButton: HTMLButtonElement = await dom.getElement<
     HTMLButtonElement
@@ -103,78 +114,109 @@ async function publishChanges(): Promise<void> {
   publishButton.click();
 }
 
-async function changeSlug(newSlug: string): Promise<void> {
-  blog.navigateToEditMetaPage();
+// TODO: Everything below this point is messy on purpose. I want to get this
+// bookmarklet to work, then refactor it only after a multi-page pattern has
+// emerged.
 
-  const slugField: HTMLInputElement = await dom.getElement<HTMLInputElement>(
-    "input#slug",
-  );
+const ssKeyPrefix: string = "blog-revisit-metadata__";
 
-  const form: HTMLFormElement = await dom.getElement<HTMLFormElement>("form");
+const ssKeyPage: string = ssKeyPrefix + "page";
+const ssKeyViewerCount: string = ssKeyPrefix + "viewer-count";
+const ssKeyNewSlug: string = ssKeyPrefix + "new-slug";
 
-  slugField.value = newSlug;
+const pageNumber: number = Number(sessionStorage.get(ssKeyPage));
 
-  form.submit();
-
-  navigation.removeFromCurrentPathnameAndNavigate("/edit/meta");
+function setNextPage(pageNumber: number) {
+  sessionStorage.set(ssKeyPage, String(pageNumber));
 }
 
-async function conditionallyApplyNewSlug(viewerCount: number): Promise<void> {
-  const currentSlug = blog.getSlug();
-  const newSlug = await blog.getSlugForTitle();
+function emptySessionStorage(): void {
+  sessionStorage.removeItem(ssKeyPage);
+  sessionStorage.removeItem(ssKeyViewerCount);
+  sessionStorage.removeItem(ssKeyNewSlug);
+}
 
-  if (newSlug === null) {
-    throw new BookmarkletError("A new slug could not be generated.");
-  } else if (newSlug === currentSlug) {
-    alert("The slug would not be changed.");
-  } else {
-    const confirmationMessage = `There have been ${viewerCount} viewers.\n` +
-      "\n" +
-      "The current slug is:\n" +
-      `${currentSlug}\n` +
-      "\n" +
-      "The new slug would be:\n" +
-      `${newSlug}\n` +
-      "\n" +
-      'Press "OK" to change the slug or "Cancel" to leave it unchanged.';
-
-    if (window.confirm(confirmationMessage)) {
-      await changeSlug(newSlug);
-    } else {
-      alert("The slug will not be changed.");
-    }
-  }
+function finalize(): void {
+  emptySessionStorage();
+  alert("The metadata update is complete!");
 }
 
 alertOnError(async () => {
-  // FIXME: This doesn't work because JavaScript stops executing before a page
-  // navigation, and it does not resume executing on the page that is loaded.
-  //
-  // Bookmarklets may not be the best tool for what I'm trying to achieve here.
-  // Perhaps some kind of browser automation like Selenium or Playwright would
-  // be better. Maybe add-ons like Greasemonkey have a pattern for dealing with
-  // this situation, since I'm sure users of those add-ons have run into this
-  // problem.
-  //
-  // A workaround might be to create multiple bookmarklets for this purpose, one
-  // for each page, and to execute them one-after-another after page navigation.
+  try {
+    if (pageNumber === null) {
+      setNextPage(2);
+      navigateToPostViewOnWriteAs();
+    } else if (pageNumber === 2) {
+      const viewerCount: number = await getViewerCount();
+      sessionStorage.set(ssKeyViewerCount, viewerCount);
+      setNextPage(3);
+      blog.navigateToEditPage();
+    } else if (pageNumber === 3) {
+      blog.insertTags();
+      showInstructionsEditTitleAndTags();
 
-  // Get the number of viewers.
-  navigateToPostViewOnWriteAs();
-  const viewerCount: number = await getViewerCount();
+      onDoneEditingKeystroke(async () => {
+        await verifyOneSetOfTags();
+        setNextPage(4);
+        await publishChanges();
+      });
+    } else if (pageNumber === 4) {
+      const viewerCount: number = Number(sessionStorage.get(ssKeyViewerCount));
 
-  // Help the user set a new title and tags, if desired.
-  blog.navigateToEditPage();
+      const currentSlug = blog.getSlug();
+      const newSlug = await blog.getSlugForTitle();
 
-  blog.insertTags();
-  showInstructionsEditTitleAndTags();
+      if (newSlug === null) {
+        throw new BookmarkletError("A new slug could not be generated.");
+      } else if (newSlug === currentSlug) {
+        alert("The slug would not be changed.");
+        finalize();
+      } else {
+        const confirmationMessage =
+          `There have been ${viewerCount} viewers.\n` +
+          "\n" +
+          "The current slug is:\n" +
+          `${currentSlug}\n` +
+          "\n" +
+          "The new slug would be:\n" +
+          `${newSlug}\n` +
+          "\n" +
+          'Press "OK" to change the slug or "Cancel" to leave it unchanged.';
 
-  // When the user presses "ALT+C", verify that the content looks okay, ask the
-  // user if they want to change the slug, and change the slug if they want to.
-  onDoneEditingKeystroke(async () => {
-    await verifyOneSetOfTags();
-    await publishChanges();
-    await conditionallyApplyNewSlug(viewerCount);
-    alert("The metadata update is complete!");
-  });
+        if (window.confirm(confirmationMessage)) {
+          sessionStorage.set(ssKeyNewSlug, newSlug);
+          setNextPage(5);
+          blog.navigateToEditMetaPage();
+        } else {
+          alert("The slug will not be changed.");
+          finalize();
+        }
+      }
+    } else if (pageNumber === 5) {
+      const newSlug: string = sessionStorage.get(ssKeyNewSlug);
+
+      const slugField: HTMLInputElement = await dom.getElement<
+        HTMLInputElement
+      >(
+        "input#slug",
+      );
+
+      const form: HTMLFormElement = await dom.getElement<HTMLFormElement>(
+        "form",
+      );
+
+      slugField.value = newSlug;
+
+      setNextPage(6);
+      form.submit();
+    } else if (pageNumber === 6) {
+      setNextPage(7);
+      navigation.removeFromCurrentPathnameAndNavigate("/edit/meta");
+    } else if (pageNumber === 7) {
+      finalize();
+    }
+  } catch (err: unknown) {
+    emptySessionStorage();
+    throw err;
+  }
 });
