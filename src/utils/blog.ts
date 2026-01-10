@@ -2,10 +2,15 @@ import BookmarkletError from "../errors/BookmarkletError.ts";
 import * as dom from "./dom.ts";
 import * as navigation from "./navigation.ts";
 
+type BaseURLs = {
+  writeAs: string;
+  johnKarahalis: string;
+};
+
 /**
  * Important base URLs for managing the blog. All other paths start with these.
  */
-export const baseUrls: Record<string, string> = {
+export const baseUrls: BaseURLs = {
   writeAs: "https://write.as/johnkarahalis/",
   johnKarahalis: "https://blog.johnkarahalis.com/",
 };
@@ -205,7 +210,7 @@ export function isEditable(urlStr: string): boolean {
   if (
     (
       !navigation.atBaseUrl(baseUrls.writeAs) &&
-      !navigation.atBaseUrl(baseUrls.johnkarahalis)
+      !navigation.atBaseUrl(baseUrls.johnKarahalis)
     ) ||
     url.pathname === "/" ||
     url.pathname.startsWith("/page/") ||

@@ -1,11 +1,13 @@
 import { removeFromEnd } from "./general.ts";
 
+type CompleteURLString = string;
+
 /**
  * Navigate to the given URL.
  *
  * @param url - The URL to navigate to.
  */
-export function navigate(url: string): void {
+export function navigate(url: CompleteURLString): void {
   window.location.href = url;
 }
 
@@ -25,9 +27,9 @@ export function navigate(url: string): void {
  *          pathname.
  */
 export function appendToPathname(
-  urlString: string,
+  urlString: CompleteURLString,
   addition: string,
-): string {
+): CompleteURLString {
   const url: URL = new URL(urlString);
   url.pathname = url.pathname.replace(/\/?$/, addition);
   return url.href;
@@ -43,9 +45,9 @@ export function appendToPathname(
  *          pathname.
  */
 export function removeFromEndOfPathname(
-  urlString: string,
+  urlString: CompleteURLString,
   removal: string,
-): string {
+): CompleteURLString {
   const url: URL = new URL(urlString);
   url.pathname = removeFromEnd(url.pathname, removal);
   return url.href;
@@ -66,12 +68,12 @@ export function removeFromEndOfPathname(
  *                   before navigating to the resulting URL.
  */
 export function appendToPathAndNavigate(
-  urlString: string,
+  urlString: CompleteURLString,
   addition: string,
 ): void {
   const url: URL = new URL(urlString);
-  url.pathname = appendToPathname(url.href, addition);
-  navigate(url.href);
+  const newUrl: CompleteURLString = appendToPathname(url.href, addition);
+  navigate(newUrl);
 }
 
 /**
@@ -85,12 +87,12 @@ export function appendToPathAndNavigate(
  *          pathname.
  */
 export function removeFromEndOfPathAndNavigate(
-  urlString: string,
+  urlString: CompleteURLString,
   removal: string,
 ): void {
   const url: URL = new URL(urlString);
-  url.pathname = removeFromEndOfPathname(url.href, removal);
-  navigate(url.href);
+  const newUrl: CompleteURLString = removeFromEndOfPathname(url.href, removal);
+  navigate(newUrl);
 }
 
 /**
