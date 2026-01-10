@@ -124,10 +124,20 @@ const ssKeyPage: string = ssKeyPrefix + "page";
 const ssKeyViewerCount: string = ssKeyPrefix + "viewer-count";
 const ssKeyNewSlug: string = ssKeyPrefix + "new-slug";
 
-const pageNumber: number = Number(sessionStorage.get(ssKeyPage));
+function getPageNumber(): number | null {
+  const sessionStoragePageNumber: string | null = sessionStorage.getItem(
+    ssKeyPage,
+  );
+
+  if (sessionStoragePageNumber === null) {
+    return null;
+  }
+
+  return Number(sessionStoragePageNumber);
+}
 
 function setNextPage(pageNumber: number) {
-  sessionStorage.set(ssKeyPage, String(pageNumber));
+  sessionStorage.setItem(ssKeyPage, String(pageNumber));
 }
 
 function emptySessionStorage(): void {
@@ -143,12 +153,14 @@ function finalize(): void {
 
 alertOnError(async () => {
   try {
+    const pageNumber: number | null = getPageNumber();
+
     if (pageNumber === null) {
       setNextPage(2);
       navigateToPostViewOnWriteAs();
     } else if (pageNumber === 2) {
       const viewerCount: number = await getViewerCount();
-      sessionStorage.set(ssKeyViewerCount, viewerCount);
+      sessionStorage.setItem(ssKeyViewerCount, String(viewerCount));
       setNextPage(3);
       blog.navigateToEditPage();
     } else if (pageNumber === 3) {
@@ -161,7 +173,9 @@ alertOnError(async () => {
         await publishChanges();
       });
     } else if (pageNumber === 4) {
-      const viewerCount: number = Number(sessionStorage.get(ssKeyViewerCount));
+      const viewerCount: number = Number(
+        sessionStorage.getItem(ssKeyViewerCount),
+      );
 
       const currentSlug = blog.getSlug();
       const newSlug = await blog.getSlugForTitle();
@@ -184,7 +198,7 @@ alertOnError(async () => {
           'Press "OK" to change the slug or "Cancel" to leave it unchanged.';
 
         if (window.confirm(confirmationMessage)) {
-          sessionStorage.set(ssKeyNewSlug, newSlug);
+          sessionStorage.setItem(ssKeyNewSlug, newSlug);
           setNextPage(5);
           blog.navigateToEditMetaPage();
         } else {
@@ -193,7 +207,11 @@ alertOnError(async () => {
         }
       }
     } else if (pageNumber === 5) {
-      const newSlug: string = sessionStorage.get(ssKeyNewSlug);
+      const newSlug: string | null = sessionStorage.getItem(ssKeyNewSlug);
+
+      if (newSlug === null) {
+        throw new BookmarkletError("Cannot get new slug from session storage.");
+      }
 
       const slugField: HTMLInputElement = await dom.getElement<
         HTMLInputElement
