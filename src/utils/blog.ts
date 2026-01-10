@@ -1,3 +1,4 @@
+import BookmarkletError from "../errors/BookmarkletError.ts";
 import * as dom from "./dom.ts";
 import * as navigation from "./navigation.ts";
 
@@ -228,24 +229,23 @@ export function isEditable(urlStr: string): boolean {
  */
 export function navigateToEditPage(): void {
   if (isEditPage(window.location.href)) {
-    alert("You are already on the edit page.");
-    return;
+    throw new BookmarkletError("You are already on the edit page.");
   }
 
   if (!isEditable(window.location.href)) {
-    alert("This page cannot be edited.");
-    return;
+    throw new BookmarkletError("This page cannot be edited.");
   }
 
   if (navigation.atBaseUrl(baseUrls.johnKarahalis)) {
-    navigation.appendToPathAndNavigate(
-      window.location.href.replace(baseUrls.johnKarahalis, baseUrls.writeAs),
-      "/edit",
+    const writeAsUrl: string = window.location.href.replace(
+      baseUrls.johnKarahalis,
+      baseUrls.writeAs,
     );
+    navigation.appendToPathAndNavigate(writeAsUrl, "/edit");
   } else if (navigation.atBaseUrl(baseUrls.writeAs)) {
     navigation.appendToCurrentPathnameAndNavigate("/edit");
   } else {
-    throw new Error(
+    throw new BookmarkletError(
       `Not at "${baseUrls.writeAs}" or "${baseUrls.johnKarahalis}".`,
     );
   }
@@ -259,13 +259,11 @@ export function navigateToEditPage(): void {
  */
 export function navigateToEditMetaPage(): void {
   if (isEditMetaPage(window.location.href)) {
-    alert('You are already on the "Edit metadata" page.');
-    return;
+    throw new BookmarkletError('You are already on the "Edit metadata" page.');
   }
 
   if (!isEditable(window.location.href)) {
-    alert("This page cannot be edited.");
-    return;
+    throw new BookmarkletError("This page cannot be edited.");
   }
 
   if (navigation.atBaseUrl(baseUrls.johnKarahalis)) {
@@ -276,7 +274,7 @@ export function navigateToEditMetaPage(): void {
   } else if (navigation.atBaseUrl(baseUrls.writeAs)) {
     navigation.appendToCurrentPathnameAndNavigate("/edit/meta");
   } else {
-    throw new Error(
+    throw new BookmarkletError(
       `Not at "${baseUrls.writeAs}" or "${baseUrls.johnKarahalis}".`,
     );
   }
@@ -296,7 +294,7 @@ export function getSlug(): string {
   const slug = window.location.pathname.split("/").pop();
 
   if (slug === undefined) {
-    throw new Error("Cannot find the slug.");
+    throw new BookmarkletError("Cannot find the slug.");
   }
 
   return slug;
@@ -331,7 +329,7 @@ export function toggleDomain(): void {
       window.location.href.replace(baseUrls.johnKarahalis, baseUrls.writeAs),
     );
   } else {
-    throw new Error(
+    throw new BookmarkletError(
       `Not at "${baseUrls.writeAs}" or "${baseUrls.johnKarahalis}".`,
     );
   }
@@ -370,7 +368,7 @@ export function getPublicFacingUrl(urlStr: string): string | null {
   );
 
   if (!urlHasWriteAsBase && !urlHasJohnKarahalisBase) {
-    throw new Error(
+    throw new BookmarkletError(
       `URL must have a base of "${baseUrls.writeAs}" or ` +
         `"${baseUrls.johnKarahalis}".`,
     );

@@ -1,31 +1,32 @@
+import BookmarkletError from "../errors/BookmarkletError.ts";
+
 /**
- * Run a function, printing to console and alerting if an error occurs.
+ * Run a function, printing to the console and alerting if an error occurs.
  *
- * If any object is thrown while running the provided function, more information
- * is printed to the console and an `alert` is raised to notify the user of
- * that fact.
+ * The error is always printed to the console.
+ *
+ * If the error is an instance of the `BookmarkletError` class and the
+ * `forEndUser` option is `true`, the message of the error is printed in an
+ * `alert`. If `forEndUser` is `false` or the error is of any other type, an
+ * `alert` is raised notifying the user to read the console.
  *
  * @param fn - The function to run.
- * @param [customAlertMessage] - A custom message to show in the `alert`,
- *                               overriding the default.
  */
 export async function alertOnError(
   fn: () => void | Promise<void>,
-  customAlertMessage: string | undefined = undefined,
 ): Promise<void> {
   try {
     await fn();
   } catch (err: unknown) {
-    // Although this could be set as a default parameter value, it would make the
-    // lines for the function signature and the JSDoc documentation very long, so
-    // it's being done this way to avoid those problems.
-    const defaultAlertMessage =
-      "An error has occurred.\n\nSee the console for more information.";
-
-    const alertMessage = customAlertMessage || defaultAlertMessage;
-
-    console.error(err);
-    alert(alertMessage);
+    if (err instanceof BookmarkletError) {
+      console.error(err);
+      if (err.options.forEndUser === true) {
+        alert(err.message);
+      }
+    } else {
+      alert("An error has occurred.\n\nSee the console for more information.");
+      console.error(err);
+    }
   }
 }
 

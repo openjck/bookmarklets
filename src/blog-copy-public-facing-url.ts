@@ -2,6 +2,7 @@
  * Copy the public-facing URL of the current page to the clipboard.
  */
 
+import BookmarkletError from "./errors/BookmarkletError.ts";
 import { getPublicFacingUrl } from "./utils/blog.ts";
 import { alertOnError } from "./utils/general.ts";
 
@@ -11,7 +12,9 @@ alertOnError(async (): Promise<void> => {
   );
 
   if (publicFacingUrl === null) {
-    alert("This page has no corresponding public-facing URL.");
+    throw new BookmarkletError(
+      "This page has no corresponding public-facing URL.",
+    );
   } else {
     await navigator.clipboard.writeText(publicFacingUrl);
 

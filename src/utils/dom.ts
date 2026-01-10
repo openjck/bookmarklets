@@ -1,3 +1,5 @@
+import BookmarkletError from "../errors/BookmarkletError.ts";
+
 export type NonNullElementProperty<ElementKey extends keyof Element> =
   NonNullable<Element[ElementKey]>;
 
@@ -81,7 +83,7 @@ export async function getNonNullElementProperty<
   const attributeValue: Element[ElementKey] = element[property];
 
   if (attributeValue === null) {
-    throw new Error(
+    throw new BookmarkletError(
       `Property "${property}" of element found with selector "${selector}" ` +
         "is null.",
     );

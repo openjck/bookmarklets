@@ -10,10 +10,11 @@
  * vocabulary very close to the end.
  */
 
+import BookmarkletError from "./errors/BookmarkletError.ts";
+import { alertOnError } from "./utils/general.ts";
 import * as dom from "./utils/dom.ts";
 import * as navigation from "./utils/navigation.ts";
 import * as blog from "./utils/blog.ts";
-import { alertOnError } from "./utils/general.ts";
 
 /**
  * Navigate to the view page of a blog post on the write.as domain.
@@ -123,7 +124,7 @@ async function conditionallyApplyNewSlug(viewerCount: number): Promise<void> {
   const newSlug = await blog.getSlugForTitle();
 
   if (newSlug === null) {
-    throw new Error("A new slug could not be generated.");
+    throw new BookmarkletError("A new slug could not be generated.");
   } else if (newSlug === currentSlug) {
     alert("The slug would not be changed.");
   } else {
