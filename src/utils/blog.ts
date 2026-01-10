@@ -338,7 +338,7 @@ export function toggleDomain(): void {
 }
 
 /**
- * Get the public-facing version of the given URL.
+ * Get the public-facing version of the given URL, or `null` if there is none.
  *
  * My blog is hosted by write.as and made available to readers at both the
  * write.as domain and the blog.johnkarahalis.com domain. The latter is the
@@ -347,31 +347,46 @@ export function toggleDomain(): void {
  * This function returns the public-facing version of the given URL regardless
  * of the domain of the given URL.
  *
+ * If the given URL has a base associated with the blog, but the specific page
+ * has no public-facing equivalent, `null` is returned.
+ *
  * @param urlStr - The URL whose public-facing version should be returned.
  *
- * @throws {Error} If the URL does not have a base which allows it to be
- *                 converted to a public-facing URL
+ * @throws {Error} If the given URL does does not have a base URL associated
+ *                 with the blog.
  *
- * @returns The public-facing URL of the current page.
+ * @returns The public-facing URL of the current page, or `null` if the URL has
+ *          a base URL associated with the blog but the specific page has no
+ *          public-facing equivalent.
  */
-export function getPublicFacingUrl(urlStr: string): string {
-  const url: URL = new URL(urlStr);
+export function getPublicFacingUrl(urlStr: string): string | null {
+  const urlHasWriteAsBase: boolean = navigation.isBaseUrl(
+    baseUrls.writeAs,
+    urlStr,
+  );
+  const urlHasJohnKarahalisBase: boolean = navigation.isBaseUrl(
+    baseUrls.johnKarahalis,
+    urlStr,
+  );
 
-  let publicFacingUrl: string;
-  if (navigation.isBaseUrl(baseUrls.writeAs, window.location.href)) {
-    publicFacingUrl = url.href.replace(
-      baseUrls.writeAs,
-      baseUrls.johnKarahalis,
-    );
-  } else if (
-    navigation.isBaseUrl(baseUrls.johnKarahalis, window.location.href)
-  ) {
-    publicFacingUrl = url.href;
-  } else {
+  if (!urlHasWriteAsBase && !urlHasJohnKarahalisBase) {
     throw new Error(
       `URL must have a base of "${baseUrls.writeAs}" or ` +
         `"${baseUrls.johnKarahalis}".`,
     );
+  }
+
+  let publicFacingUrl: string | null;
+
+  if (isEditPage(urlStr) || isEditMetaPage(urlStr)) {
+    publicFacingUrl = null;
+  } else if (urlHasWriteAsBase) {
+    publicFacingUrl = urlStr.replace(baseUrls.writeAs, baseUrls.johnKarahalis);
+  } else {
+    // By process of elimination, considering the `throw` condition earlier in
+    // this function and the `else if` condition tested directly above, we now
+    // know the URL must have a base of `baseUrls.johnKarahalis`.
+    publicFacingUrl = urlStr;
   }
 
   return publicFacingUrl;
