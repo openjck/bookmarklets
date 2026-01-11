@@ -190,6 +190,10 @@ export async function getTitle(): Promise<string | null> {
  * // Returns the following:
  * // why-a-b-testing-with-test_function-is-a-feel-good-time
  * slugify("Why A/B testing with test_function is a feel-good time!");
+ *
+ * @param str - The string that should be converted to a slug.
+ *
+ * @returns The slug representation of the provided string.
  */
 export function slugify(str: string): string {
   return str
