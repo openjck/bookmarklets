@@ -1,14 +1,22 @@
 These are my personal bookmarklets, written in TypeScript and built by Deno. I
 use them to customize websites and programatically interact with them.
 
+These bookmarklets are currently highly particular to my own usage—in fact, at
+the moment, all of them exist to help me write on my blog. For that reason, it's
+very unlikely that others will have a direct use for any of them. Still, I
+always share code, even in cases like these, in case anyone finds some patterns
+or helper functions useful. And why not? Sharing just feels good.
+
 Many people prefer to use userscripts for this purpose, with an add-on like
 [Violentmonkey](https://addons.mozilla.org/en-US/firefox/addon/violentmonkey/).
-For now, I decided to generate bookmarklets because they work in all browsers,
-they're synced to mobile browsers through normal browser synchronization
-functionality, and they don't require add-ons. I'm not sure what benefits a
-userscript manager would provide over that approach, honestly, and they add some
-complexity, like needing third-party services for synchronization. Still, I'll
-consider using a userscript manager in the future if the benefits outweigh the
+I decided to generate bookmarklets instead because they work in all browsers,
+they're synced to mobile browsers through normal browser sync functionality, and
+they don't require add-ons. Userscript managers are helpful when using scripts
+shared by others, when updating scripts shared by others, and when one doesn't
+want to deal with a build script. None of those properties benefit me, though,
+because I'm not using any shared scripts and I need a build step anyway because
+I'm using TypeScript and imports. Still, I'll consider generating userscripts
+and using a userscript manager in the future if the benefits ever outweigh the
 costs.
 
 ## To build bookmarklets
