@@ -53,3 +53,17 @@ export function removeFromEnd(str: string, removal: string): string {
 
   return str.substring(0, lastIndex);
 }
+
+/**
+ * Raise an alert about how this bookmarklet needs to be clicked multiple times.
+ */
+export function alertAboutMultipleSteps(): void {
+  alert(
+    "This bookmarklet must be clicked multiple times to complete its work " +
+      "because JavaScript execution does not persist across page " +
+      "navigation.\n" +
+      "\n" +
+      "If the bookmarklet seems not to be doing anything, try clicking it " +
+      "again.",
+  );
+}

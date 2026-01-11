@@ -160,6 +160,12 @@ function cleanUp(): void {
 const stepFunctions: Record<number, () => void> = {};
 
 stepFunctions[1] = async (): Promise<void> => {
+  // TODO: Uncomment this when I'm not using it so consistently.
+  //
+  // At the time of this writing, I'm using this bookmarklet frequently enough
+  // that I don't need this reminder.
+  // alertAboutMultipleSteps();
+
   const viewerCount: number = await getViewerCount();
   sessionStorage.setItem(ssKeyViewerCount, String(viewerCount));
   setNextStepNumber(2);
