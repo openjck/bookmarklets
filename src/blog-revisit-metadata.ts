@@ -8,6 +8,12 @@
  * I want to revisit these things because I only really started using titles
  * halfway through the thoughts migration, and I only really finalized my tag
  * vocabulary very close to the end.
+ *
+ * In hindsight, this probably should have been some kind of Selenium or other
+ * browser automation script, because bookmarklet execution does not persist
+ * across page loads. I didn't think of that when I started writing this. The
+ * workaround (clicking the bookmarklet multiple times) works, but it's annoying
+ * and the implementation is also a bit odd.
  */
 
 import BookmarkletError from "./errors/BookmarkletError.ts";
