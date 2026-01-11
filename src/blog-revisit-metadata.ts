@@ -22,6 +22,14 @@ import * as dom from "./utils/dom.ts";
 import * as navigation from "./utils/navigation.ts";
 import * as blog from "./utils/blog.ts";
 
+const ssKeyPrefix: string = "blog-revisit-metadata__";
+
+const ssKeyPage: string = ssKeyPrefix + "page";
+const ssKeyViewerCount: string = ssKeyPrefix + "viewer-count";
+const ssKeyNewSlug: string = ssKeyPrefix + "new-slug";
+
+const completedMessage: string = "The metadata update is complete!";
+
 /**
  * Get the number of viewers of the currently-loaded blog post.
  *
@@ -60,16 +68,16 @@ function showInstructionsEditTitleAndTags(): void {
 }
 
 /**
- * TODO: Function signature changed; this needs updating.
- *
- * Verify that the blog post being edited contains exactly one set of tags.
+ * Return `true` if the blog post being edited contains one set of tags.
  *
  * Precondition: This function must be run on the edit page of a single blog
  * post.
  *
  * If fewer or greater than one set of tags is found, prompt the user to use
- * exactly one set of tags and subsequently click the bookmarklet again, then
- * run this function again after.
+ * exactly one set of tags and subsequently click the bookmarklet again.
+ *
+ * @returns `true` if the blog post being edited contains exactly one set of
+ *          tags, otherwise `false`.
  */
 async function oneSetOfTags(): Promise<boolean> {
   const writingArea: HTMLTextAreaElement = await blog.getWritingArea();
@@ -99,42 +107,183 @@ async function publishChanges(): Promise<void> {
   publishButton.click();
 }
 
-// TODO: Everything below this point is messy on purpose. I want to get this
-// bookmarklet to work, then refactor it only after a multi-page pattern has
-// emerged.
-
-const ssKeyPrefix: string = "blog-revisit-metadata__";
-
-const ssKeyPage: string = ssKeyPrefix + "page";
-const ssKeyViewerCount: string = ssKeyPrefix + "viewer-count";
-const ssKeyNewSlug: string = ssKeyPrefix + "new-slug";
-
-const completedMessage: string = "The metadata update is complete!";
-
+/**
+ * Return the current step number recorded in sessionStorage.
+ *
+ * If the current step number is not recorded in sessionStorage, return `null`.
+ * Otherwise, return the step number as a number.
+ *
+ * @returns The current step number, or `null`.
+ */
 function getStepNumber(): number | null {
-  const sessionStoragePageNumber: string | null = sessionStorage.getItem(
+  const rawSessionStorageValue: string | null = sessionStorage.getItem(
     ssKeyPage,
   );
 
-  if (sessionStoragePageNumber === null) {
+  if (rawSessionStorageValue === null) {
     return null;
   }
 
-  return Number(sessionStoragePageNumber);
+  return Number(rawSessionStorageValue);
 }
 
-function setNextStep(stepNumber: number) {
+/**
+ * Record, in sessionStorage, the number of the next step to complete.
+ *
+ * @param stepNumber - The number of the next step that must be completed.
+ */
+function setNextStepNumber(stepNumber: number): void {
   sessionStorage.setItem(ssKeyPage, String(stepNumber));
 }
 
-function emptySessionStorage(): void {
+/**
+ * Remove all sessionStorage items created by this bookmarklet.
+ */
+function clearSessionStorage(): void {
   sessionStorage.removeItem(ssKeyPage);
   sessionStorage.removeItem(ssKeyViewerCount);
   sessionStorage.removeItem(ssKeyNewSlug);
 }
 
-function finalize(): void {
-  emptySessionStorage();
+/**
+ * Clean up after this bookmarklet's main execution completes.
+ *
+ * This function should be run whether the bookmarklet completes its execution,
+ * either successfully or unsuccessfully.
+ */
+function cleanUp(): void {
+  clearSessionStorage();
+}
+
+async function runStep1(): Promise<void> {
+  const viewerCount: number = await getViewerCount();
+  sessionStorage.setItem(ssKeyViewerCount, String(viewerCount));
+  setNextStepNumber(2);
+  blog.navigateToEditPage();
+}
+
+// This function is called dynamically, so Deno incorrectly thinks it's unused.
+//
+// deno-lint-ignore no-unused-vars
+function runStep2(): void {
+  blog.insertTags();
+  showInstructionsEditTitleAndTags();
+  setNextStepNumber(3);
+}
+
+// This function is called dynamically, so Deno incorrectly thinks it's unused.
+//
+// deno-lint-ignore no-unused-vars
+async function runStep3(): Promise<void> {
+  const tagsVerified: boolean = await oneSetOfTags();
+  if (tagsVerified === true) {
+    setNextStepNumber(4);
+    await publishChanges();
+  }
+}
+
+// This function is called dynamically, so Deno incorrectly thinks it's unused.
+//
+// deno-lint-ignore no-unused-vars
+async function runStep4(): Promise<void> {
+  const viewerCountSessionStorage: string | null = sessionStorage.getItem(
+    ssKeyViewerCount,
+  );
+
+  if (viewerCountSessionStorage === null) {
+    throw new BookmarkletError(
+      "Cannot retrieve viewer count from session storage.",
+    );
+  }
+
+  const viewerCount: number = Number(viewerCountSessionStorage);
+
+  const currentSlug: string = blog.getSlug();
+  const newSlug: string | null = await blog.getSlugForTitle();
+
+  if (newSlug === null) {
+    throw new BookmarkletError("A new slug could not be generated.");
+  } else if (newSlug === currentSlug) {
+    alert(
+      "The slug would not be changed.\n" +
+        "\n" +
+        completedMessage,
+    );
+    cleanUp();
+  } else {
+    let viewerMessage: string;
+    if (viewerCount === 1) {
+      viewerMessage = "There has been 1 viewer.";
+    } else {
+      viewerMessage = `There have been ${viewerCount} viewers.`;
+    }
+
+    const confirmationMessage = `${viewerMessage}\n` +
+      "\n" +
+      "The current slug is:\n" +
+      `${currentSlug}\n` +
+      "\n" +
+      "The new slug would be:\n" +
+      `${newSlug}\n` +
+      "\n" +
+      'Press "OK" to change the slug or "Cancel" to leave it unchanged.';
+
+    if (window.confirm(confirmationMessage)) {
+      sessionStorage.setItem(ssKeyNewSlug, newSlug);
+      setNextStepNumber(5);
+      blog.navigateToEditMetaPage();
+    } else {
+      alert(
+        "The slug will not be changed.\n" +
+          "\n" +
+          completedMessage,
+      );
+      cleanUp();
+    }
+  }
+}
+
+// This function is called dynamically, so Deno incorrectly thinks it's unused.
+//
+// deno-lint-ignore no-unused-vars
+async function runStep5(): Promise<void> {
+  const newSlug: string | null = sessionStorage.getItem(ssKeyNewSlug);
+
+  if (newSlug === null) {
+    throw new BookmarkletError(
+      "Cannot retrieve new slug from session storage.",
+    );
+  }
+
+  const slugField: HTMLInputElement = await dom.getElement<
+    HTMLInputElement
+  >(
+    "input#slug",
+  );
+
+  const form: HTMLFormElement = await dom.getElement<HTMLFormElement>(
+    "form",
+  );
+
+  slugField.value = newSlug;
+  setNextStepNumber(6);
+  form.submit();
+}
+
+// This function is called dynamically, so Deno incorrectly thinks it's unused.
+//
+// deno-lint-ignore no-unused-vars
+function runStep6(): void {
+  setNextStepNumber(7);
+  navigation.removeFromCurrentPathnameAndNavigate("/edit/meta");
+}
+
+// This function is called dynamically, so Deno incorrectly thinks it's unused.
+//
+// deno-lint-ignore no-unused-vars
+function runStep7(): void {
+  alert(completedMessage);
+  cleanUp();
 }
 
 alertOnError(async () => {
@@ -142,107 +291,14 @@ alertOnError(async () => {
     const stepNumber: number | null = getStepNumber();
 
     if (stepNumber === null) {
-      const viewerCount: number = await getViewerCount();
-      sessionStorage.setItem(ssKeyViewerCount, String(viewerCount));
-      setNextStep(2);
-      blog.navigateToEditPage();
-    } else if (stepNumber === 2) {
-      blog.insertTags();
-      showInstructionsEditTitleAndTags();
-      setNextStep(3);
-    } else if (stepNumber === 3) {
-      const tagsVerified: boolean = await oneSetOfTags();
-      if (tagsVerified === true) {
-        setNextStep(4);
-        await publishChanges();
-      }
-    } else if (stepNumber === 4) {
-      const viewerCountSessionStorage: string | null = sessionStorage.getItem(
-        ssKeyViewerCount,
-      );
-
-      if (viewerCountSessionStorage === null) {
-        throw new BookmarkletError(
-          "Cannot retrieve viewer count from session storage.",
-        );
-      }
-
-      const viewerCount: number = Number(viewerCountSessionStorage);
-
-      const currentSlug: string = blog.getSlug();
-      const newSlug: string | null = await blog.getSlugForTitle();
-
-      if (newSlug === null) {
-        throw new BookmarkletError("A new slug could not be generated.");
-      } else if (newSlug === currentSlug) {
-        alert(
-          "The slug would not be changed.\n" +
-            "\n" +
-            completedMessage,
-        );
-        finalize();
-      } else {
-        let viewerMessage: string;
-        if (viewerCount === 1) {
-          viewerMessage = "There has been 1 viewer.";
-        } else {
-          viewerMessage = `There have been ${viewerCount} viewers.`;
-        }
-
-        const confirmationMessage = `${viewerMessage}\n` +
-          "\n" +
-          "The current slug is:\n" +
-          `${currentSlug}\n` +
-          "\n" +
-          "The new slug would be:\n" +
-          `${newSlug}\n` +
-          "\n" +
-          'Press "OK" to change the slug or "Cancel" to leave it unchanged.';
-
-        if (window.confirm(confirmationMessage)) {
-          sessionStorage.setItem(ssKeyNewSlug, newSlug);
-          setNextStep(5);
-          blog.navigateToEditMetaPage();
-        } else {
-          alert(
-            "The slug will not be changed.\n" +
-              "\n" +
-              completedMessage,
-          );
-          finalize();
-        }
-      }
-    } else if (stepNumber === 5) {
-      const newSlug: string | null = sessionStorage.getItem(ssKeyNewSlug);
-
-      if (newSlug === null) {
-        throw new BookmarkletError(
-          "Cannot retrieve new slug from session storage.",
-        );
-      }
-
-      const slugField: HTMLInputElement = await dom.getElement<
-        HTMLInputElement
-      >(
-        "input#slug",
-      );
-
-      const form: HTMLFormElement = await dom.getElement<HTMLFormElement>(
-        "form",
-      );
-
-      slugField.value = newSlug;
-      setNextStep(6);
-      form.submit();
-    } else if (stepNumber === 6) {
-      setNextStep(7);
-      navigation.removeFromCurrentPathnameAndNavigate("/edit/meta");
-    } else if (stepNumber === 7) {
-      alert(completedMessage);
-      finalize();
+      await runStep1();
+    } else {
+      const stepNumberStr: string = String(stepNumber);
+      const stepFunctionName: string = `runStep${stepNumberStr}`;
+      await window[stepFunctionName as keyof Window]();
     }
   } catch (err: unknown) {
-    emptySessionStorage();
+    cleanUp();
     throw err;
   }
 });
