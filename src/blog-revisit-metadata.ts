@@ -3,7 +3,7 @@
  * post.
  *
  * Precondition: This bookmarklet must be run on the view page of a single blog
- * post, on either domain.
+ * post on the write.as domain.
  *
  * I want to revisit these things because I only really started using titles
  * halfway through the thoughts migration, and I only really finalized my tag
@@ -21,18 +21,6 @@ import { alertOnError } from "./utils/general.ts";
 import * as dom from "./utils/dom.ts";
 import * as navigation from "./utils/navigation.ts";
 import * as blog from "./utils/blog.ts";
-
-/**
- * Navigate to the view page of a blog post on the write.as domain.
- *
- * Precondition: This function must be run on the view page of a single blog
- * post, on either domain.
- */
-function navigateToPostViewOnWriteAs(): void {
-  if (navigation.atBaseUrl(blog.baseUrls.johnKarahalis)) {
-    blog.toggleDomain();
-  }
-}
 
 /**
  * Get the number of viewers of the currently-loaded blog post.
@@ -162,29 +150,34 @@ alertOnError(async () => {
     const pageNumber: number | null = getPageNumber();
 
     if (pageNumber === null) {
-      setNextPage(2);
-      navigateToPostViewOnWriteAs();
-    } else if (pageNumber === 2) {
       const viewerCount: number = await getViewerCount();
       sessionStorage.setItem(ssKeyViewerCount, String(viewerCount));
-      setNextPage(3);
+      setNextPage(2);
       blog.navigateToEditPage();
-    } else if (pageNumber === 3) {
+    } else if (pageNumber === 2) {
       blog.insertTags();
       showInstructionsEditTitleAndTags();
 
       onDoneEditingKeystroke(async () => {
         await verifyOneSetOfTags();
-        setNextPage(4);
+        setNextPage(3);
         await publishChanges();
       });
-    } else if (pageNumber === 4) {
-      const viewerCount: number = Number(
-        sessionStorage.getItem(ssKeyViewerCount),
+    } else if (pageNumber === 3) {
+      const viewerCountSessionStorage: string | null = sessionStorage.getItem(
+        ssKeyViewerCount,
       );
 
-      const currentSlug = blog.getSlug();
-      const newSlug = await blog.getSlugForTitle();
+      if (viewerCountSessionStorage === null) {
+        throw new BookmarkletError(
+          "Cannot retrieve viewer count from session storage.",
+        );
+      }
+
+      const viewerCount: number = Number(viewerCountSessionStorage);
+
+      const currentSlug: string = blog.getSlug();
+      const newSlug: string | null = await blog.getSlugForTitle();
 
       if (newSlug === null) {
         throw new BookmarkletError("A new slug could not be generated.");
@@ -205,18 +198,20 @@ alertOnError(async () => {
 
         if (window.confirm(confirmationMessage)) {
           sessionStorage.setItem(ssKeyNewSlug, newSlug);
-          setNextPage(5);
+          setNextPage(4);
           blog.navigateToEditMetaPage();
         } else {
           alert("The slug will not be changed.");
           finalize();
         }
       }
-    } else if (pageNumber === 5) {
+    } else if (pageNumber === 4) {
       const newSlug: string | null = sessionStorage.getItem(ssKeyNewSlug);
 
       if (newSlug === null) {
-        throw new BookmarkletError("Cannot get new slug from session storage.");
+        throw new BookmarkletError(
+          "Cannot retrieve new slug from session storage.",
+        );
       }
 
       const slugField: HTMLInputElement = await dom.getElement<
@@ -230,13 +225,12 @@ alertOnError(async () => {
       );
 
       slugField.value = newSlug;
-
-      setNextPage(6);
+      setNextPage(5);
       form.submit();
-    } else if (pageNumber === 6) {
-      setNextPage(7);
+    } else if (pageNumber === 5) {
+      setNextPage(6);
       navigation.removeFromCurrentPathnameAndNavigate("/edit/meta");
-    } else if (pageNumber === 7) {
+    } else if (pageNumber === 6) {
       finalize();
     }
   } catch (err: unknown) {
