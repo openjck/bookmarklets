@@ -172,34 +172,53 @@ export async function getTitle(): Promise<string | null> {
 }
 
 /**
+ * Return a slug for the provided string, similar to how WriteFreely would.
+ *
+ * This function converts a string to a slug, following the same apparent
+ * algorithm that WriteFreely itself follows when to converts a title to a slug,
+ * or at least an algorithm that is close enough. (I could dig around the
+ * WriteFreely source code to find the exact algorithm, and perhaps some day
+ * I will. For now, this is close enough for my needs.) WriteFreely converts
+ * a title to a slug only when a blog post is first published.
+ *
+ * Underscores and hyphens are preserved, one or more forward slashes or
+ * backslashes is replaced by a single hyphen, all whitespace is replaced with
+ * hyphens, other non-alphanumeric characters are removed, and all remaining
+ * characters are made lower-case.
+ *
+ * @example
+ * // Returns the following:
+ * // why-a-b-testing-with-test_function-is-a-feel-good-time
+ * slugify("Why A/B testing with test_function is a feel-good time!");
+ */
+export function slugify(str: string): string {
+  return str
+    .replace(/^#\s*/, "")
+    .replace(/(\/|\\)+/g, "-")
+    .replace(/\s+/g, "-")
+    .replace(/[^\w-]/g, "")
+    .toLowerCase();
+}
+
+/**
  * Return a slug for the current blog post, based on the title, or `null`.
- *
- * This algorithm follows the same apparent algorithm that Write.as itself seems
- * to follow when it converts a title to a slug, which it does only when the
- * blog post is first published: underscores and hyphens are preserved, all
- * whitespace is replaced with hyphens, other non-alphanumeric characters are
- * removed, and all remaining characters are made lower-case.
- *
- * If a title cannot be found, `null` is returned.
  *
  * Precondition: This function can be called from either the view page of
  * a single blog post or the edit page of a single blog post, on either domain.
  *
+ * If a title cannot be found, `null` is returned.
+ *
  * @returns A promise which resolves to either a slug for the current blog post,
  *          based on the title, or `null` if a title cannot be found.
  */
-export async function getSlugForTitle(): Promise<string | null> {
+export async function slugifyTitle(): Promise<string | null> {
   const title: string | null = await getTitle();
 
   if (title === null) {
     return null;
   }
 
-  return title
-    .replace(/^#\s*/, "")
-    .replace(/\s+/g, "-")
-    .replace(/[^\w-]/g, "")
-    .toLowerCase();
+  return slugify(title);
 }
 
 /**
