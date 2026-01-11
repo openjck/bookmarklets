@@ -55,47 +55,38 @@ function showInstructionsEditTitleAndTags(): void {
   alert(
     "Manual step: Modify the title and tags as desired.\n" +
       "\n" +
-      'Press "ALT+C" (think "C" for "Continue") when done.',
+      "Click the bookmarklet again when done.",
   );
 }
 
 /**
- * Run a function when the "done editing" keystroke (ALT+C) is pressed.
+ * TODO: Function signature changed; this needs updating.
  *
- * @param fn - The function to run when the "done editing" keystroke is pressed.
- */
-function onDoneEditingKeystroke(fn: () => void): void {
-  document.addEventListener("keydown", (e: KeyboardEvent) => {
-    if (e.altKey === true && e.key.toLowerCase() === "c") {
-      e.preventDefault();
-      fn();
-    }
-  });
-}
-
-/**
  * Verify that the blog post being edited contains exactly one set of tags.
  *
  * Precondition: This function must be run on the edit page of a single blog
  * post.
  *
  * If fewer or greater than one set of tags is found, prompt the user to use
- * exactly one set of tags and subsequently use the "done editing" keystroke
- * (ALT+C), then run this function again after the keystroke is pressed.
+ * exactly one set of tags and subsequently click the bookmarklet again, then
+ * run this function again after.
  */
-async function verifyOneSetOfTags(): Promise<void> {
+async function oneSetOfTags(): Promise<boolean> {
   const writingArea: HTMLTextAreaElement = await blog.getWritingArea();
   const matches: RegExpMatchArray | null = writingArea.value.match(/\n\s*#/g);
   const numSetsOfTags: number = matches === null ? 0 : matches.length;
 
   if (numSetsOfTags !== 1) {
     alert(
-      `There must be one set of tags, but ${numSetsOfTags} sets exist.\n` +
+      `There must be exactly 1 set of tags, but ${numSetsOfTags} sets ` +
+        "exist.\n" +
         "\n" +
-        'Use exactly one set of tags, then press "ALT+C" to continue.',
+        "Click the bookmarklet again to continue.",
     );
-    onDoneEditingKeystroke(verifyOneSetOfTags);
+    return false;
   }
+
+  return true;
 }
 
 /**
@@ -118,7 +109,9 @@ const ssKeyPage: string = ssKeyPrefix + "page";
 const ssKeyViewerCount: string = ssKeyPrefix + "viewer-count";
 const ssKeyNewSlug: string = ssKeyPrefix + "new-slug";
 
-function getPageNumber(): number | null {
+const completedMessage: string = "The metadata update is complete!";
+
+function getStepNumber(): number | null {
   const sessionStoragePageNumber: string | null = sessionStorage.getItem(
     ssKeyPage,
   );
@@ -130,8 +123,8 @@ function getPageNumber(): number | null {
   return Number(sessionStoragePageNumber);
 }
 
-function setNextPage(pageNumber: number) {
-  sessionStorage.setItem(ssKeyPage, String(pageNumber));
+function setNextStep(stepNumber: number) {
+  sessionStorage.setItem(ssKeyPage, String(stepNumber));
 }
 
 function emptySessionStorage(): void {
@@ -142,28 +135,28 @@ function emptySessionStorage(): void {
 
 function finalize(): void {
   emptySessionStorage();
-  alert("The metadata update is complete!");
 }
 
 alertOnError(async () => {
   try {
-    const pageNumber: number | null = getPageNumber();
+    const stepNumber: number | null = getStepNumber();
 
-    if (pageNumber === null) {
+    if (stepNumber === null) {
       const viewerCount: number = await getViewerCount();
       sessionStorage.setItem(ssKeyViewerCount, String(viewerCount));
-      setNextPage(2);
+      setNextStep(2);
       blog.navigateToEditPage();
-    } else if (pageNumber === 2) {
+    } else if (stepNumber === 2) {
       blog.insertTags();
       showInstructionsEditTitleAndTags();
-
-      onDoneEditingKeystroke(async () => {
-        await verifyOneSetOfTags();
-        setNextPage(3);
+      setNextStep(3);
+    } else if (stepNumber === 3) {
+      const tagsVerified: boolean = await oneSetOfTags();
+      if (tagsVerified === true) {
+        setNextStep(4);
         await publishChanges();
-      });
-    } else if (pageNumber === 3) {
+      }
+    } else if (stepNumber === 4) {
       const viewerCountSessionStorage: string | null = sessionStorage.getItem(
         ssKeyViewerCount,
       );
@@ -182,11 +175,21 @@ alertOnError(async () => {
       if (newSlug === null) {
         throw new BookmarkletError("A new slug could not be generated.");
       } else if (newSlug === currentSlug) {
-        alert("The slug would not be changed.");
+        alert(
+          "The slug would not be changed.\n" +
+            "\n" +
+            completedMessage,
+        );
         finalize();
       } else {
-        const confirmationMessage =
-          `There have been ${viewerCount} viewers.\n` +
+        let viewerMessage: string;
+        if (viewerCount === 1) {
+          viewerMessage = "There has been 1 viewer.";
+        } else {
+          viewerMessage = `There have been ${viewerCount} viewers.`;
+        }
+
+        const confirmationMessage = `${viewerMessage}\n` +
           "\n" +
           "The current slug is:\n" +
           `${currentSlug}\n` +
@@ -198,14 +201,18 @@ alertOnError(async () => {
 
         if (window.confirm(confirmationMessage)) {
           sessionStorage.setItem(ssKeyNewSlug, newSlug);
-          setNextPage(4);
+          setNextStep(5);
           blog.navigateToEditMetaPage();
         } else {
-          alert("The slug will not be changed.");
+          alert(
+            "The slug will not be changed.\n" +
+              "\n" +
+              completedMessage,
+          );
           finalize();
         }
       }
-    } else if (pageNumber === 4) {
+    } else if (stepNumber === 5) {
       const newSlug: string | null = sessionStorage.getItem(ssKeyNewSlug);
 
       if (newSlug === null) {
@@ -225,12 +232,13 @@ alertOnError(async () => {
       );
 
       slugField.value = newSlug;
-      setNextPage(5);
+      setNextStep(6);
       form.submit();
-    } else if (pageNumber === 5) {
-      setNextPage(6);
+    } else if (stepNumber === 6) {
+      setNextStep(7);
       navigation.removeFromCurrentPathnameAndNavigate("/edit/meta");
-    } else if (pageNumber === 6) {
+    } else if (stepNumber === 7) {
+      alert(completedMessage);
       finalize();
     }
   } catch (err: unknown) {
