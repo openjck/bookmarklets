@@ -28,7 +28,9 @@ const ssKeyPage: string = ssKeyPrefix + "page";
 const ssKeyViewerCount: string = ssKeyPrefix + "viewer-count";
 const ssKeyNewSlug: string = ssKeyPrefix + "new-slug";
 
-const completedMessage: string = "The metadata update is complete!";
+const completedMessage: string = "The metadata update is complete!\n" +
+  "\n" +
+  "All state has been cleaned up.";
 
 /**
  * Get the number of viewers of the currently-loaded blog post.
@@ -192,17 +194,17 @@ stepFunctions[4] = async (): Promise<void> => {
   const viewerCount: number = Number(viewerCountSessionStorage);
 
   const currentSlug: string = blog.getSlug();
-  const newSlug: string | null = await blog.getSlugForTitle();
+  const newSlug: string | null = await blog.slugifyTitle();
 
   if (newSlug === null) {
     throw new BookmarkletError("A new slug could not be generated.");
   } else if (newSlug === currentSlug) {
+    cleanUp();
     alert(
       "The slug would not be changed.\n" +
         "\n" +
         completedMessage,
     );
-    cleanUp();
   } else {
     let viewerMessage: string;
     if (viewerCount === 1) {
@@ -226,12 +228,12 @@ stepFunctions[4] = async (): Promise<void> => {
       setNextStepNumber(5);
       blog.navigateToEditMetaPage();
     } else {
+      cleanUp();
       alert(
         "The slug will not be changed.\n" +
           "\n" +
           completedMessage,
       );
-      cleanUp();
     }
   }
 };
@@ -261,13 +263,15 @@ stepFunctions[5] = async (): Promise<void> => {
 };
 
 stepFunctions[6] = (): void => {
-  setNextStepNumber(7);
-  navigation.removeFromCurrentPathnameAndNavigate("/edit/meta");
-};
-
-stepFunctions[7] = (): void => {
-  alert(completedMessage);
   cleanUp();
+
+  const confirmationMessage: string = `${completedMessage}\n` +
+    "\n" +
+    "Navigate to the view page of this blog post?";
+
+  if (window.confirm(confirmationMessage)) {
+    navigation.removeFromCurrentPathnameAndNavigate("/edit/meta");
+  }
 };
 
 alertOnError(async () => {
