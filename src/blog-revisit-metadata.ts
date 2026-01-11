@@ -155,37 +155,30 @@ function cleanUp(): void {
   clearSessionStorage();
 }
 
-async function runStep1(): Promise<void> {
+const stepFunctions: Record<number, () => void> = {};
+
+stepFunctions[1] = async (): Promise<void> => {
   const viewerCount: number = await getViewerCount();
   sessionStorage.setItem(ssKeyViewerCount, String(viewerCount));
   setNextStepNumber(2);
   blog.navigateToEditPage();
-}
+};
 
-// This function is called dynamically, so Deno incorrectly thinks it's unused.
-//
-// deno-lint-ignore no-unused-vars
-function runStep2(): void {
+stepFunctions[2] = (): void => {
   blog.insertTags();
   showInstructionsEditTitleAndTags();
   setNextStepNumber(3);
-}
+};
 
-// This function is called dynamically, so Deno incorrectly thinks it's unused.
-//
-// deno-lint-ignore no-unused-vars
-async function runStep3(): Promise<void> {
+stepFunctions[3] = async (): Promise<void> => {
   const tagsVerified: boolean = await oneSetOfTags();
   if (tagsVerified === true) {
     setNextStepNumber(4);
     await publishChanges();
   }
-}
+};
 
-// This function is called dynamically, so Deno incorrectly thinks it's unused.
-//
-// deno-lint-ignore no-unused-vars
-async function runStep4(): Promise<void> {
+stepFunctions[4] = async (): Promise<void> => {
   const viewerCountSessionStorage: string | null = sessionStorage.getItem(
     ssKeyViewerCount,
   );
@@ -241,12 +234,9 @@ async function runStep4(): Promise<void> {
       cleanUp();
     }
   }
-}
+};
 
-// This function is called dynamically, so Deno incorrectly thinks it's unused.
-//
-// deno-lint-ignore no-unused-vars
-async function runStep5(): Promise<void> {
+stepFunctions[5] = async (): Promise<void> => {
   const newSlug: string | null = sessionStorage.getItem(ssKeyNewSlug);
 
   if (newSlug === null) {
@@ -268,34 +258,26 @@ async function runStep5(): Promise<void> {
   slugField.value = newSlug;
   setNextStepNumber(6);
   form.submit();
-}
+};
 
-// This function is called dynamically, so Deno incorrectly thinks it's unused.
-//
-// deno-lint-ignore no-unused-vars
-function runStep6(): void {
+stepFunctions[6] = (): void => {
   setNextStepNumber(7);
   navigation.removeFromCurrentPathnameAndNavigate("/edit/meta");
-}
+};
 
-// This function is called dynamically, so Deno incorrectly thinks it's unused.
-//
-// deno-lint-ignore no-unused-vars
-function runStep7(): void {
+stepFunctions[7] = (): void => {
   alert(completedMessage);
   cleanUp();
-}
+};
 
 alertOnError(async () => {
   try {
     const stepNumber: number | null = getStepNumber();
 
     if (stepNumber === null) {
-      await runStep1();
+      await stepFunctions[1]();
     } else {
-      const stepNumberStr: string = String(stepNumber);
-      const stepFunctionName: string = `runStep${stepNumberStr}`;
-      await window[stepFunctionName as keyof Window]();
+      await stepFunctions[stepNumber]();
     }
   } catch (err: unknown) {
     cleanUp();
