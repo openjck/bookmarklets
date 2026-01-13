@@ -55,7 +55,7 @@ export function removeFromEnd(str: string, removal: string): string {
 }
 
 /**
- * Raise an alert about how this bookmarklet needs to be clicked multiple times.
+ * Raise an alert about a bookmarklet needing to be clicked multiple times.
  */
 export function alertAboutMultipleSteps(): void {
   alert(
