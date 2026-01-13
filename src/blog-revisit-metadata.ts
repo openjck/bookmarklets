@@ -271,13 +271,13 @@ stepFunctions[5] = async (): Promise<void> => {
 stepFunctions[6] = (): void => {
   cleanUp();
 
-  const confirmationMessage: string = `${completedMessage}\n` +
-    "\n" +
-    "Navigate to the view page of this blog post?";
+  alert(
+    `${completedMessage}\n` +
+      "\n" +
+      "Navigating to the view page of this blog post…",
+  );
 
-  if (window.confirm(confirmationMessage)) {
-    navigation.removeFromCurrentPathnameAndNavigate("/edit/meta");
-  }
+  navigation.removeFromCurrentPathnameAndNavigate("/edit/meta");
 };
 
 alertOnError(async () => {
