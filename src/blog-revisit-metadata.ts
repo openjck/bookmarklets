@@ -28,9 +28,10 @@ const ssKeyPage: string = ssKeyPrefix + "page";
 const ssKeyViewerCount: string = ssKeyPrefix + "viewer-count";
 const ssKeyNewSlug: string = ssKeyPrefix + "new-slug";
 
-const completedMessage: string = "The metadata update is complete!\n" +
-  "\n" +
-  "All state has been cleaned up.";
+type FinalAlertAdditions = {
+  before?: string;
+  after?: string;
+};
 
 /**
  * Get the number of viewers of the currently-loaded blog post.
@@ -61,6 +62,11 @@ async function getViewerCount(): Promise<number> {
 /**
  * Explain the manual steps that must be taken to modify the title and tags.
  */
+// This function is unused for now, because I'm using the bookmarklet so
+// frequently that I don't need this reminder, but it will be enable again in
+// the future.
+//
+// deno-lint-ignore no-unused-vars
 function showInstructionsEditTitleAndTags(): void {
   alert(
     "Manual step: Modify the title and tags as desired.\n" +
@@ -152,9 +158,33 @@ function clearSessionStorage(): void {
  *
  * This function should be run whether the bookmarklet completes its execution,
  * either successfully or unsuccessfully.
+ *
+ * @param alertAdditions - Strings that should be added before or after the
+ *                         final alert message. Omit the argument entirely to
+ *                         not modify the final alert message.
  */
-function cleanUp(): void {
+function finalize(alertAdditions?: FinalAlertAdditions): void {
   clearSessionStorage();
+
+  let alertMessage: string = "The metadata update is complete.";
+
+  if (alertAdditions?.before !== undefined) {
+    alertMessage = `${alertAdditions.before}\n` +
+      "\n" +
+      alertMessage;
+  }
+
+  if (alertAdditions?.after !== undefined) {
+    alertMessage = `${alertMessage}\n` +
+      "\n" +
+      alertAdditions.after;
+  }
+
+  alert(alertMessage);
+
+  // This isn't important enough to show in the alert, but it's good to know, so
+  // print it to the console.
+  console.log("All state has been cleaned up.");
 }
 
 const stepFunctions: Record<number, () => void> = {};
@@ -174,7 +204,12 @@ stepFunctions[1] = async (): Promise<void> => {
 
 stepFunctions[2] = (): void => {
   blog.insertTags();
-  showInstructionsEditTitleAndTags();
+
+  // TODO: Uncomment this at some point. At the moment, I'm using the
+  // bookmarklet frequently enough that I don't need this reminder.
+  //
+  // showInstructionsEditTitleAndTags();
+
   setNextStepNumber(3);
 };
 
@@ -205,12 +240,7 @@ stepFunctions[4] = async (): Promise<void> => {
   if (newSlug === null) {
     throw new BookmarkletError("A new slug could not be generated.");
   } else if (newSlug === currentSlug) {
-    cleanUp();
-    alert(
-      "The slug would not be changed.\n" +
-        "\n" +
-        completedMessage,
-    );
+    finalize({ before: "The slug would not be changed." });
   } else {
     let viewerMessage: string;
     if (viewerCount === 1) {
@@ -234,12 +264,7 @@ stepFunctions[4] = async (): Promise<void> => {
       setNextStepNumber(5);
       blog.navigateToEditMetaPage();
     } else {
-      cleanUp();
-      alert(
-        "The slug will not be changed.\n" +
-          "\n" +
-          completedMessage,
-      );
+      finalize({ before: "The slug will not be changed." });
     }
   }
 };
@@ -269,14 +294,7 @@ stepFunctions[5] = async (): Promise<void> => {
 };
 
 stepFunctions[6] = (): void => {
-  cleanUp();
-
-  alert(
-    `${completedMessage}\n` +
-      "\n" +
-      "Navigating to the view page of this blog post…",
-  );
-
+  finalize({ after: "Navigating to the view page of this blog post…" });
   navigation.removeFromCurrentPathnameAndNavigate("/edit/meta");
 };
 
@@ -290,7 +308,7 @@ alertOnError(async () => {
       await stepFunctions[stepNumber]();
     }
   } catch (err: unknown) {
-    cleanUp();
+    finalize();
     throw err;
   }
 });
