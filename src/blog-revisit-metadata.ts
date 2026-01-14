@@ -17,6 +17,9 @@
  */
 
 import BookmarkletError from "./errors/BookmarkletError.ts";
+import StepRunner, {
+  SetNextStepNumberFunction,
+} from "./utils/classes/StepRunner.ts";
 import { alertOnError } from "./utils/general.ts";
 import * as dom from "./utils/dom.ts";
 import * as navigation from "./utils/navigation.ts";
@@ -24,8 +27,9 @@ import * as blog from "./utils/blog.ts";
 
 const ssKeyPrefix: string = "blog-revisit-metadata__";
 
-const ssKeyStep: string = ssKeyPrefix + "step";
 const ssKeyNewSlug: string = ssKeyPrefix + "new-slug";
+
+const stepRunner: StepRunner = new StepRunner(ssKeyPrefix);
 
 type FinalAlertAdditions = {
   before?: string;
@@ -115,39 +119,9 @@ async function publishChanges(): Promise<void> {
 }
 
 /**
- * Return the current step number recorded in sessionStorage.
- *
- * If the current step number is not recorded in sessionStorage, return `null`.
- * Otherwise, return the step number as a number.
- *
- * @returns The current step number, or `null`.
- */
-function getStepNumber(): number | null {
-  const rawSessionStorageValue: string | null = sessionStorage.getItem(
-    ssKeyStep,
-  );
-
-  if (rawSessionStorageValue === null) {
-    return null;
-  }
-
-  return Number(rawSessionStorageValue);
-}
-
-/**
- * Record, in sessionStorage, the number of the next step to complete.
- *
- * @param stepNumber - The number of the next step that must be completed.
- */
-function setNextStepNumber(stepNumber: number): void {
-  sessionStorage.setItem(ssKeyStep, String(stepNumber));
-}
-
-/**
  * Remove all sessionStorage items created by this bookmarklet.
  */
 function clearSessionStorage(): void {
-  sessionStorage.removeItem(ssKeyStep);
   sessionStorage.removeItem(ssKeyNewSlug);
 }
 
@@ -163,6 +137,7 @@ function clearSessionStorage(): void {
  */
 function finalize(alertAdditions?: FinalAlertAdditions): void {
   clearSessionStorage();
+  stepRunner.cleanUp();
 
   let alertMessage: string = "The metadata update is complete.";
 
@@ -185,111 +160,111 @@ function finalize(alertAdditions?: FinalAlertAdditions): void {
   console.log("All state has been cleaned up.");
 }
 
-const stepFunctions: Record<number, () => void> = {};
+stepRunner.addStep(
+  (setNextStepNumberFn: SetNextStepNumberFunction): void => {
+    // TODO: Uncomment this when I'm not using it so consistently.
+    //
+    // At the time of this writing, I'm using this bookmarklet frequently enough
+    // that I don't need this reminder.
+    // alertAboutMultipleSteps();
 
-stepFunctions[1] = (): void => {
-  // TODO: Uncomment this when I'm not using it so consistently.
-  //
-  // At the time of this writing, I'm using this bookmarklet frequently enough
-  // that I don't need this reminder.
-  // alertAboutMultipleSteps();
+    blog.insertTags();
 
-  blog.insertTags();
+    // TODO: Uncomment this at some point. At the moment, I'm using the
+    // bookmarklet frequently enough that I don't need this reminder.
+    //
+    // showInstructionsEditTitleAndTags();
 
-  // TODO: Uncomment this at some point. At the moment, I'm using the
-  // bookmarklet frequently enough that I don't need this reminder.
-  //
-  // showInstructionsEditTitleAndTags();
+    setNextStepNumberFn();
+  },
+);
 
-  setNextStepNumber(2);
-};
+stepRunner.addStep(
+  async (setNextStepNumberFn: SetNextStepNumberFunction): Promise<void> => {
+    const tagsVerified: boolean = await oneSetOfTags();
+    if (tagsVerified === true) {
+      setNextStepNumberFn();
+      await publishChanges();
+    }
+  },
+);
 
-stepFunctions[2] = async (): Promise<void> => {
-  const tagsVerified: boolean = await oneSetOfTags();
-  if (tagsVerified === true) {
-    setNextStepNumber(3);
-    await publishChanges();
-  }
-};
+stepRunner.addStep(
+  async (setNextStepNumberFn: SetNextStepNumberFunction): Promise<void> => {
+    const viewerCount: number = await getViewerCount();
 
-stepFunctions[3] = async (): Promise<void> => {
-  const viewerCount: number = await getViewerCount();
+    const currentSlug: string = blog.getSlug();
+    const newSlug: string | null = await blog.slugifyTitle();
 
-  const currentSlug: string = blog.getSlug();
-  const newSlug: string | null = await blog.slugifyTitle();
-
-  if (newSlug === null) {
-    throw new BookmarkletError("A new slug could not be generated.");
-  } else if (newSlug === currentSlug) {
-    finalize({ before: "The slug would not be changed." });
-  } else {
-    let viewerMessage: string;
-    if (viewerCount === 1) {
-      viewerMessage = "There has been 1 viewer.";
+    if (newSlug === null) {
+      throw new BookmarkletError("A new slug could not be generated.");
+    } else if (newSlug === currentSlug) {
+      finalize({ before: "The slug would not be changed." });
     } else {
-      viewerMessage = `There have been ${viewerCount} viewers.`;
+      let viewerMessage: string;
+      if (viewerCount === 1) {
+        viewerMessage = "There has been 1 viewer.";
+      } else {
+        viewerMessage = `There have been ${viewerCount} viewers.`;
+      }
+
+      const confirmationMessage = `${viewerMessage}\n` +
+        "\n" +
+        "The current slug is:\n" +
+        `${currentSlug}\n` +
+        "\n" +
+        "The new slug would be:\n" +
+        `${newSlug}\n` +
+        "\n" +
+        'Press "OK" to change the slug or "Cancel" to leave it unchanged.';
+
+      if (window.confirm(confirmationMessage)) {
+        sessionStorage.setItem(ssKeyNewSlug, newSlug);
+        setNextStepNumberFn();
+        blog.navigateToEditMetaPage();
+      } else {
+        finalize({ before: "The slug will not be changed." });
+      }
+    }
+  },
+);
+
+stepRunner.addStep(
+  async (setNextStepNumberFn: SetNextStepNumberFunction): Promise<void> => {
+    const newSlug: string | null = sessionStorage.getItem(ssKeyNewSlug);
+
+    if (newSlug === null) {
+      throw new BookmarkletError(
+        "Cannot retrieve new slug from session storage.",
+      );
     }
 
-    const confirmationMessage = `${viewerMessage}\n` +
-      "\n" +
-      "The current slug is:\n" +
-      `${currentSlug}\n` +
-      "\n" +
-      "The new slug would be:\n" +
-      `${newSlug}\n` +
-      "\n" +
-      'Press "OK" to change the slug or "Cancel" to leave it unchanged.';
-
-    if (window.confirm(confirmationMessage)) {
-      sessionStorage.setItem(ssKeyNewSlug, newSlug);
-      setNextStepNumber(4);
-      blog.navigateToEditMetaPage();
-    } else {
-      finalize({ before: "The slug will not be changed." });
-    }
-  }
-};
-
-stepFunctions[4] = async (): Promise<void> => {
-  const newSlug: string | null = sessionStorage.getItem(ssKeyNewSlug);
-
-  if (newSlug === null) {
-    throw new BookmarkletError(
-      "Cannot retrieve new slug from session storage.",
+    const slugField: HTMLInputElement = await dom.getElement<
+      HTMLInputElement
+    >(
+      "input#slug",
     );
-  }
 
-  const slugField: HTMLInputElement = await dom.getElement<
-    HTMLInputElement
-  >(
-    "input#slug",
-  );
+    const form: HTMLFormElement = await dom.getElement<HTMLFormElement>(
+      "form",
+    );
 
-  const form: HTMLFormElement = await dom.getElement<HTMLFormElement>(
-    "form",
-  );
+    slugField.value = newSlug;
 
-  slugField.value = newSlug;
+    setNextStepNumberFn();
 
-  setNextStepNumber(5);
+    form.submit();
+  },
+);
 
-  form.submit();
-};
-
-stepFunctions[5] = (): void => {
+stepRunner.addStep((): void => {
   finalize({ after: "Navigating to the view page of this blog post…" });
   navigation.removeFromCurrentPathnameAndNavigate("/edit/meta");
-};
+});
 
 alertOnError(async () => {
   try {
-    const stepNumber: number | null = getStepNumber();
-
-    if (stepNumber === null) {
-      await stepFunctions[1]();
-    } else {
-      await stepFunctions[stepNumber]();
-    }
+    await stepRunner.runCurrentStep();
   } catch (err: unknown) {
     finalize();
     throw err;

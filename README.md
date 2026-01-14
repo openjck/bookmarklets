@@ -4,8 +4,9 @@ use them to customize websites and programatically interact with them.
 These bookmarks are currently highly particular to my own needs. In fact, all of
 them exist to help me manage my blog. It's unlikely anyone will have any direct
 uses for them. Still, I always share code, even in cases like these, because
-others may find some patterns or helper functions useful. Besides, sharing just
-feels good.
+others may find some patterns or helper functions useful. The `StepRunner`
+class, `getElement` method (which waits for the element to become available
+within a given timeout), and the `getNonNullElementProperty` function are handy.
 
 Some people prefer to use
 [userscripts](https://en.wikipedia.org/wiki/Userscript) for things like this,
