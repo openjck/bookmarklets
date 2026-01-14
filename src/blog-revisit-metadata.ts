@@ -162,6 +162,12 @@ function finalize(alertAdditions?: FinalAlertAdditions): void {
 
 stepRunner.addStep(
   (setNextStepNumberFn: SetNextStepNumberFunction): void => {
+    if (!blog.isEditPage(window.location.href)) {
+      throw new Error(
+        "This bookmarklet must be run on the edit page of a single blog post."
+      );
+    }
+
     // TODO: Uncomment this when I'm not using it so consistently.
     //
     // At the time of this writing, I'm using this bookmarklet frequently enough
