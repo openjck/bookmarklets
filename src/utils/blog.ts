@@ -106,6 +106,10 @@ export function isEditMetaPage(urlStr: string): boolean {
      #Article #Favorites #FiveWordMovieReview...
  */
 export async function insertTags(): Promise<void> {
+  // TODO: Allow inserting tags on the _post_ edit page (write.as/edit/id) as
+  // well as the homepage (write.as/#), which is where a post is initially
+  // written.
+
   if (!isEditPage(window.location.href)) {
     throw new BookmarkletError(
       "This bookmarklet must be run on the edit page of a single blog post.",
