@@ -23,10 +23,16 @@ export default class StepRunner {
   /**
    * TODO: Write JSDoc
    */
-  constructor(sessionStoragePrefix: string) {
+  constructor(sessionStoragePrefix: string, steps?: StepFunction[]) {
     this.#sessionStorageStepKey = sessionStoragePrefix + "step";
     this.#nextStepNumber = 1;
     this.#steps = {};
+
+    if (steps !== undefined) {
+      steps.forEach((step: StepFunction) => {
+        this.addStep(step);
+      });
+    }
   }
 
   /**

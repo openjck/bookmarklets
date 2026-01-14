@@ -160,113 +160,132 @@ function finalize(alertAdditions?: FinalAlertAdditions): void {
   log("All state has been cleaned up.");
 }
 
-stepRunner.addStep(
-  (setNextStepNumberFn: SetNextStepNumberFunction): void => {
-    if (!blog.isEditPage(window.location.href)) {
-      throw new Error(
-        "This bookmarklet must be run on the edit page of a single blog post."
-      );
-    }
+/**
+ * TODO: Write JSDoc.
+ */
+function step1(setNextStepNumberFn: SetNextStepNumberFunction): void {
+  if (!blog.isEditPage(window.location.href)) {
+    throw new Error(
+      "This bookmarklet must be run on the edit page of a single blog post.",
+    );
+  }
 
-    // TODO: Uncomment this when I'm not using it so consistently.
-    //
-    // At the time of this writing, I'm using this bookmarklet frequently enough
-    // that I don't need this reminder.
-    // alertAboutMultipleSteps();
+  // TODO: Uncomment this when I'm not using it so consistently.
+  //
+  // At the time of this writing, I'm using this bookmarklet frequently enough
+  // that I don't need this reminder.
+  // alertAboutMultipleSteps();
 
-    blog.insertTags();
+  blog.insertTags();
 
-    // TODO: Uncomment this at some point. At the moment, I'm using the
-    // bookmarklet frequently enough that I don't need this reminder.
-    //
-    // showInstructionsEditTitleAndTags();
+  // TODO: Uncomment this at some point. At the moment, I'm using the
+  // bookmarklet frequently enough that I don't need this reminder.
+  //
+  // showInstructionsEditTitleAndTags();
 
+  setNextStepNumberFn();
+}
+
+/**
+ * TODO: Write JSDoc.
+ */
+async function step2(
+  setNextStepNumberFn: SetNextStepNumberFunction,
+): Promise<void> {
+  const tagsVerified: boolean = await oneSetOfTags();
+  if (tagsVerified === true) {
     setNextStepNumberFn();
-  },
-);
+    await publishChanges();
+  }
+}
 
-stepRunner.addStep(
-  async (setNextStepNumberFn: SetNextStepNumberFunction): Promise<void> => {
-    const tagsVerified: boolean = await oneSetOfTags();
-    if (tagsVerified === true) {
-      setNextStepNumberFn();
-      await publishChanges();
-    }
-  },
-);
+/**
+ * TODO: Write JSDoc.
+ */
+async function step3(
+  setNextStepNumberFn: SetNextStepNumberFunction,
+): Promise<void> {
+  const viewerCount: number = await getViewerCount();
 
-stepRunner.addStep(
-  async (setNextStepNumberFn: SetNextStepNumberFunction): Promise<void> => {
-    const viewerCount: number = await getViewerCount();
+  const currentSlug: string = blog.getSlug();
+  const newSlug: string | null = await blog.slugifyTitle();
 
-    const currentSlug: string = blog.getSlug();
-    const newSlug: string | null = await blog.slugifyTitle();
-
-    if (newSlug === null) {
-      throw new BookmarkletError("A new slug could not be generated.");
-    } else if (newSlug === currentSlug) {
-      finalize({ before: "The slug would not be changed." });
+  if (newSlug === null) {
+    throw new BookmarkletError("A new slug could not be generated.");
+  } else if (newSlug === currentSlug) {
+    finalize({ before: "The slug would not be changed." });
+  } else {
+    let viewerMessage: string;
+    if (viewerCount === 1) {
+      viewerMessage = "There has been 1 viewer.";
     } else {
-      let viewerMessage: string;
-      if (viewerCount === 1) {
-        viewerMessage = "There has been 1 viewer.";
-      } else {
-        viewerMessage = `There have been ${viewerCount} viewers.`;
-      }
-
-      const confirmationMessage = `${viewerMessage}\n` +
-        "\n" +
-        "The current slug is:\n" +
-        `${currentSlug}\n` +
-        "\n" +
-        "The new slug would be:\n" +
-        `${newSlug}\n` +
-        "\n" +
-        'Press "OK" to change the slug or "Cancel" to leave it unchanged.';
-
-      if (window.confirm(confirmationMessage)) {
-        sessionStorage.setItem(ssKeyNewSlug, newSlug);
-        setNextStepNumberFn();
-        blog.navigateToEditMetaPage();
-      } else {
-        finalize({ before: "The slug will not be changed." });
-      }
-    }
-  },
-);
-
-stepRunner.addStep(
-  async (setNextStepNumberFn: SetNextStepNumberFunction): Promise<void> => {
-    const newSlug: string | null = sessionStorage.getItem(ssKeyNewSlug);
-
-    if (newSlug === null) {
-      throw new BookmarkletError(
-        "Cannot retrieve new slug from session storage.",
-      );
+      viewerMessage = `There have been ${viewerCount} viewers.`;
     }
 
-    const slugField: HTMLInputElement = await dom.getElement<
-      HTMLInputElement
-    >(
-      "input#slug",
+    const confirmationMessage = `${viewerMessage}\n` +
+      "\n" +
+      "The current slug is:\n" +
+      `${currentSlug}\n` +
+      "\n" +
+      "The new slug would be:\n" +
+      `${newSlug}\n` +
+      "\n" +
+      'Press "OK" to change the slug or "Cancel" to leave it unchanged.';
+
+    if (window.confirm(confirmationMessage)) {
+      sessionStorage.setItem(ssKeyNewSlug, newSlug);
+      setNextStepNumberFn();
+      blog.navigateToEditMetaPage();
+    } else {
+      finalize({ before: "The slug will not be changed." });
+    }
+  }
+}
+
+/**
+ * TODO: Write JSDoc.
+ */
+async function step4(
+  setNextStepNumberFn: SetNextStepNumberFunction,
+): Promise<void> {
+  const newSlug: string | null = sessionStorage.getItem(ssKeyNewSlug);
+
+  if (newSlug === null) {
+    throw new BookmarkletError(
+      "Cannot retrieve new slug from session storage.",
     );
+  }
 
-    const form: HTMLFormElement = await dom.getElement<HTMLFormElement>(
-      "form",
-    );
+  const slugField: HTMLInputElement = await dom.getElement<
+    HTMLInputElement
+  >(
+    "input#slug",
+  );
 
-    slugField.value = newSlug;
+  const form: HTMLFormElement = await dom.getElement<HTMLFormElement>(
+    "form",
+  );
 
-    setNextStepNumberFn();
+  slugField.value = newSlug;
 
-    form.submit();
-  },
-);
+  setNextStepNumberFn();
 
-stepRunner.addStep((): void => {
+  form.submit();
+}
+
+/**
+ * TODO: Write JSDoc.
+ */
+function step5(): void {
   finalize({ after: "Navigating to the view page of this blog post…" });
   navigation.removeFromCurrentPathnameAndNavigate("/edit/meta");
-});
+}
+
+stepRunner.addStep(step1);
+stepRunner.addStep(step2);
+stepRunner.addStep(step3);
+stepRunner.addStep(step4);
+stepRunner.addStep(step5);
 
 alertOnError(async () => {
   try {
