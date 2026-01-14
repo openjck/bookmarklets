@@ -2,8 +2,8 @@
  * Revisit and potentially change the title, tags, and/or slug of a single blog
  * post.
  *
- * Precondition: This bookmarklet must be run on the view page of a single blog
- * post on the write.as domain.
+ * Precondition: This bookmarklet must be run on the edit page of a single blog
+ * post.
  *
  * I want to revisit these things because I only really started using titles
  * halfway through the thoughts migration, and I only really finalized my tag
@@ -24,8 +24,7 @@ import * as blog from "./utils/blog.ts";
 
 const ssKeyPrefix: string = "blog-revisit-metadata__";
 
-const ssKeyPage: string = ssKeyPrefix + "page";
-const ssKeyViewerCount: string = ssKeyPrefix + "viewer-count";
+const ssKeyStep: string = ssKeyPrefix + "step";
 const ssKeyNewSlug: string = ssKeyPrefix + "new-slug";
 
 type FinalAlertAdditions = {
@@ -125,7 +124,7 @@ async function publishChanges(): Promise<void> {
  */
 function getStepNumber(): number | null {
   const rawSessionStorageValue: string | null = sessionStorage.getItem(
-    ssKeyPage,
+    ssKeyStep,
   );
 
   if (rawSessionStorageValue === null) {
@@ -141,15 +140,14 @@ function getStepNumber(): number | null {
  * @param stepNumber - The number of the next step that must be completed.
  */
 function setNextStepNumber(stepNumber: number): void {
-  sessionStorage.setItem(ssKeyPage, String(stepNumber));
+  sessionStorage.setItem(ssKeyStep, String(stepNumber));
 }
 
 /**
  * Remove all sessionStorage items created by this bookmarklet.
  */
 function clearSessionStorage(): void {
-  sessionStorage.removeItem(ssKeyPage);
-  sessionStorage.removeItem(ssKeyViewerCount);
+  sessionStorage.removeItem(ssKeyStep);
   sessionStorage.removeItem(ssKeyNewSlug);
 }
 
@@ -189,20 +187,13 @@ function finalize(alertAdditions?: FinalAlertAdditions): void {
 
 const stepFunctions: Record<number, () => void> = {};
 
-stepFunctions[1] = async (): Promise<void> => {
+stepFunctions[1] = (): void => {
   // TODO: Uncomment this when I'm not using it so consistently.
   //
   // At the time of this writing, I'm using this bookmarklet frequently enough
   // that I don't need this reminder.
   // alertAboutMultipleSteps();
 
-  const viewerCount: number = await getViewerCount();
-  sessionStorage.setItem(ssKeyViewerCount, String(viewerCount));
-  setNextStepNumber(2);
-  blog.navigateToEditPage();
-};
-
-stepFunctions[2] = (): void => {
   blog.insertTags();
 
   // TODO: Uncomment this at some point. At the moment, I'm using the
@@ -210,29 +201,19 @@ stepFunctions[2] = (): void => {
   //
   // showInstructionsEditTitleAndTags();
 
-  setNextStepNumber(3);
+  setNextStepNumber(2);
 };
 
-stepFunctions[3] = async (): Promise<void> => {
+stepFunctions[2] = async (): Promise<void> => {
   const tagsVerified: boolean = await oneSetOfTags();
   if (tagsVerified === true) {
-    setNextStepNumber(4);
+    setNextStepNumber(3);
     await publishChanges();
   }
 };
 
-stepFunctions[4] = async (): Promise<void> => {
-  const viewerCountSessionStorage: string | null = sessionStorage.getItem(
-    ssKeyViewerCount,
-  );
-
-  if (viewerCountSessionStorage === null) {
-    throw new BookmarkletError(
-      "Cannot retrieve viewer count from session storage.",
-    );
-  }
-
-  const viewerCount: number = Number(viewerCountSessionStorage);
+stepFunctions[3] = async (): Promise<void> => {
+  const viewerCount: number = await getViewerCount();
 
   const currentSlug: string = blog.getSlug();
   const newSlug: string | null = await blog.slugifyTitle();
@@ -261,7 +242,7 @@ stepFunctions[4] = async (): Promise<void> => {
 
     if (window.confirm(confirmationMessage)) {
       sessionStorage.setItem(ssKeyNewSlug, newSlug);
-      setNextStepNumber(5);
+      setNextStepNumber(4);
       blog.navigateToEditMetaPage();
     } else {
       finalize({ before: "The slug will not be changed." });
@@ -269,7 +250,7 @@ stepFunctions[4] = async (): Promise<void> => {
   }
 };
 
-stepFunctions[5] = async (): Promise<void> => {
+stepFunctions[4] = async (): Promise<void> => {
   const newSlug: string | null = sessionStorage.getItem(ssKeyNewSlug);
 
   if (newSlug === null) {
@@ -289,11 +270,13 @@ stepFunctions[5] = async (): Promise<void> => {
   );
 
   slugField.value = newSlug;
-  setNextStepNumber(6);
+
+  setNextStepNumber(5);
+
   form.submit();
 };
 
-stepFunctions[6] = (): void => {
+stepFunctions[5] = (): void => {
   finalize({ after: "Navigating to the view page of this blog post…" });
   navigation.removeFromCurrentPathnameAndNavigate("/edit/meta");
 };
