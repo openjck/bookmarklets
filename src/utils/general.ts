@@ -67,3 +67,12 @@ export function alertAboutMultipleSteps(): void {
       "again.",
   );
 }
+
+/**
+ * Log a message to the console with an indicator that it came from bookmarklet.
+ *
+ * @param message - The message to log to the console.
+ */
+export function log(message: string): void {
+  console.log(`[Bookmarklet] ${message}`);
+}

@@ -20,7 +20,7 @@ import BookmarkletError from "./errors/BookmarkletError.ts";
 import StepRunner, {
   SetNextStepNumberFunction,
 } from "./utils/classes/StepRunner.ts";
-import { alertOnError } from "./utils/general.ts";
+import { alertOnError, log } from "./utils/general.ts";
 import * as dom from "./utils/dom.ts";
 import * as navigation from "./utils/navigation.ts";
 import * as blog from "./utils/blog.ts";
@@ -157,7 +157,7 @@ function finalize(alertAdditions?: FinalAlertAdditions): void {
 
   // This isn't important enough to show in the alert, but it's good to know, so
   // print it to the console.
-  console.log("All state has been cleaned up.");
+  log("All state has been cleaned up.");
 }
 
 stepRunner.addStep(
