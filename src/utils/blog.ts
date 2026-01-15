@@ -23,7 +23,6 @@ export const tagVocabulary: string[] = [
   "#Favorites",
   "#FiveWordMovieReview",
   "#Life",
-  "#Miscellaneous",
   "#PublicNotice",
   "#Quotes",
   "#Recipes",
