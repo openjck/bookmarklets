@@ -1,6 +1,11 @@
 /**
- * TODO: Write JSDoc. By doing it here, I don't need to document it in "revisit"
- * when using addStep().
+ * A function that should be run near the end of one step to indicate that the
+ * next step is ready to be run. The next step will be run the next time the
+ * bookmarklet is clicked.
+ *
+ * JavaScript execution does not persist across page navigation, so if a step
+ * ends with navigation, this function should be called just before that
+ * navigation occurs.
  */
 export type SetNextStepNumberFunction = () => void;
 
