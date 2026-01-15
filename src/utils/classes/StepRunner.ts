@@ -10,15 +10,14 @@
 export type SetNextStepNumberFunction = () => void;
 
 /**
- * TODO: Write JSDoc. By doing it here, I don't need to document it in "revisit"
- * when using addStep().
+ * A function which can be run to perform on step of a bookmarklet's work.
  */
 export type StepFunction = (
   setNextStepNumberFn: SetNextStepNumberFunction,
 ) => void | Promise<void>;
 
 /**
- * TODO: Write JSDoc
+ * StepRunner manages and runs functions which perform bookmarklet steps.
  */
 export default class StepRunner {
   #sessionStorageStepKey: string;
@@ -26,7 +25,15 @@ export default class StepRunner {
   #steps: Record<number, StepFunction>;
 
   /**
-   * TODO: Write JSDoc
+   * Create a new instance.
+   *
+   * @param sessionStoragePrefix - A prefix that should be used in the names of
+   *                               session storage keys for session storage
+   *                               items that are used by this class. This can
+   *                               be any unique value that does not change
+   *                               during the execution of the bookmarklet.
+   * @param [steps] - An array of steps to initialize this class with, as an
+   *                  alternative to using `addStep` later.
    */
   constructor(sessionStoragePrefix: string, steps?: StepFunction[]) {
     this.#sessionStorageStepKey = sessionStoragePrefix + "step";
@@ -41,17 +48,23 @@ export default class StepRunner {
   }
 
   /**
-   * TODO: Write JSDoc
+   * Add a function for performing a bookmarklet step, to be run later.
+   *
+   * @param stepFn - A function for performing a bookmarklet step.
    */
-  addStep(stepFn: StepFunction) {
+  addStep(stepFn: StepFunction): void {
     this.#steps[this.#nextStepNumber] = stepFn;
     this.#nextStepNumber = this.#nextStepNumber + 1;
   }
 
   /**
-   * TODO: Write JSDoc
+   * Run the step that should be performed during this click of the bookmarklet.
+   *
+   * Each time the bookmarklet is clicked, another step should be run. This
+   * function runs the appropriate step, based on what is recorded as the
+   * "current step" in session storage.
    */
-  async runCurrentStep() {
+  async runCurrentStep(): Promise<void> {
     const currentStepNumber: number = this.#getCurrentStepNumber();
     const nextStepNumber: number = currentStepNumber + 1;
 
@@ -61,40 +74,43 @@ export default class StepRunner {
   }
 
   /**
-   * TODO: Write JSDoc
+   * Remove any long-lived data that was created by this class to manage state.
+   *
+   * Currently, this method only removes the "current step" data that is
+   * recorded in session storage.
    */
-  cleanUp() {
+  cleanUp(): void {
     sessionStorage.removeItem(this.#sessionStorageStepKey);
   }
 
   /**
-   * TODO: Rewrite JSDoc. It came from the old "revisit" file.
+   * Record, in session storage, the number of the next step that should be run.
    *
-   * Record, in sessionStorage, the number of the next step to complete.
-   *
-   * @param stepNumber - The number of the next step that must be completed.
+   * @param stepNumber - The number of the next step that should be run.
    */
   #setStepNumber(stepNumber: number): void {
     sessionStorage.setItem(this.#sessionStorageStepKey, String(stepNumber));
   }
 
   /**
-   * TODO: Rewrite JSDoc. It came from the old "revisit" file.
+   * Return the number of the step that should be run during this click.
    *
-   * Return the current step number recorded in sessionStorage.
+   * If the number of the current step is not recorded in session storage,
+   * return 1. Otherwise, return the current step number according to session
+   * storage.
    *
-   * If the current step number is not recorded in sessionStorage, return `null`.
-   * Otherwise, return the step number as a number.
+   * @returns The number of the step that should be run during this click of the
+   *          bookmarklet.
    */
   #getCurrentStepNumber(): number {
-    const nextStepNumberRaw: string | null = sessionStorage.getItem(
+    const currentStepNumberRaw: string | null = sessionStorage.getItem(
       this.#sessionStorageStepKey,
     );
 
-    if (nextStepNumberRaw === null) {
+    if (currentStepNumberRaw === null) {
       return 1;
     }
 
-    return Number(nextStepNumberRaw);
+    return Number(currentStepNumberRaw);
   }
 }
