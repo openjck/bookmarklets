@@ -3,16 +3,30 @@ import * as dom from "./dom.ts";
 import * as navigation from "./navigation.ts";
 
 type BaseURLs = {
-  writeAs: string;
-  johnKarahalis: string;
+  blogWriteAs: string;
+  blogJohnKarahalis: string;
+  writeAsEditAnonymousPost: string;
 };
+
+/**
+ * The URLs of the Write.as pages where one can write a new blog post.
+ */
+const writeAsCreateUrls = [
+  "https://write.as/",
+  "https://write.as.#",
+];
 
 /**
  * Important base URLs for managing the blog. All other paths start with these.
  */
 export const baseUrls: BaseURLs = {
-  writeAs: "https://write.as/johnkarahalis/",
-  johnKarahalis: "https://blog.johnkarahalis.com/",
+  blogWriteAs: "https://write.as/johnkarahalis/",
+  blogJohnKarahalis: "https://blog.johnkarahalis.com/",
+
+  // The URL for editing an anonymous Post, which, in WriteFreely terminology,
+  // somewhat confusingly, is a blog post that is accessible only by link and
+  // which is not actually associated with any blog.
+  writeAsEditAnonymousPost: "https://write.as/edit/",
 };
 
 /**
@@ -66,7 +80,7 @@ export async function getWritingArea(
 export function isEditPage(urlStr: string): boolean {
   const url: URL = new URL(urlStr);
 
-  return url.href.startsWith(baseUrls.writeAs) &&
+  return url.href.startsWith(baseUrls.blogWriteAs) &&
     url.pathname.endsWith("/edit");
 }
 
@@ -81,15 +95,15 @@ export function isEditPage(urlStr: string): boolean {
 export function isEditMetaPage(urlStr: string): boolean {
   const url: URL = new URL(urlStr);
 
-  return url.href.startsWith(baseUrls.writeAs) &&
+  return url.href.startsWith(baseUrls.blogWriteAs) &&
     url.pathname.endsWith("/edit/meta");
 }
 
 /**
  * Insert all tags used on the blog at the bottom of the writing area.
  *
- * Precondition: This function can be called from the edit page of a single blog
- * post.
+ * Precondition: This function must be run on the edit page for a single blog
+ * post, the edit page for anonymous post, or the new post creation page.
  *
  * Tags are added two newlines below the current text in the writing area. Tags
  * are separated by spaces, and each tag begins with the pound sign.
@@ -105,13 +119,14 @@ export function isEditMetaPage(urlStr: string): boolean {
      #Article #Favorites #FiveWordMovieReview...
  */
 export async function insertTags(): Promise<void> {
-  // TODO: Allow inserting tags on the _post_ edit page (write.as/edit/id) as
-  // well as the homepage (write.as/#), which is where a post is initially
-  // written.
-
-  if (!isEditPage(window.location.href)) {
+  if (
+    !isEditPage(window.location.href) &&
+    !navigation.atBaseUrl(baseUrls.writeAsEditAnonymousPost) &&
+    !writeAsCreateUrls.includes(window.location.href)
+  ) {
     throw new BookmarkletError(
-      "This bookmarklet must be run on the edit page of a single blog post.",
+      "This bookmarklet must be run on the edit page for a single blog post, " +
+        "the edit page for anonymous post, or the new post creation page.",
     );
   }
 
@@ -241,8 +256,8 @@ export function isEditable(urlStr: string): boolean {
 
   if (
     (
-      !navigation.atBaseUrl(baseUrls.writeAs) &&
-      !navigation.atBaseUrl(baseUrls.johnKarahalis)
+      !navigation.atBaseUrl(baseUrls.blogWriteAs) &&
+      !navigation.atBaseUrl(baseUrls.blogJohnKarahalis)
     ) ||
     url.pathname === "/" ||
     url.pathname.startsWith("/page/") ||
@@ -273,17 +288,17 @@ export function navigateToEditPage(): void {
     throw new BookmarkletError("This page cannot be edited.");
   }
 
-  if (navigation.atBaseUrl(baseUrls.johnKarahalis)) {
+  if (navigation.atBaseUrl(baseUrls.blogJohnKarahalis)) {
     const writeAsUrl: string = window.location.href.replace(
-      baseUrls.johnKarahalis,
-      baseUrls.writeAs,
+      baseUrls.blogJohnKarahalis,
+      baseUrls.blogWriteAs,
     );
     navigation.appendToPathAndNavigate(writeAsUrl, "/edit");
-  } else if (navigation.atBaseUrl(baseUrls.writeAs)) {
+  } else if (navigation.atBaseUrl(baseUrls.blogWriteAs)) {
     navigation.appendToCurrentPathnameAndNavigate("/edit");
   } else {
     throw new BookmarkletError(
-      `Not at "${baseUrls.writeAs}" or "${baseUrls.johnKarahalis}".`,
+      `Not at "${baseUrls.blogWriteAs}" or "${baseUrls.blogJohnKarahalis}".`,
     );
   }
 }
@@ -303,16 +318,19 @@ export function navigateToEditMetaPage(): void {
     throw new BookmarkletError("This page cannot be edited.");
   }
 
-  if (navigation.atBaseUrl(baseUrls.johnKarahalis)) {
+  if (navigation.atBaseUrl(baseUrls.blogJohnKarahalis)) {
     navigation.appendToPathAndNavigate(
-      window.location.href.replace(baseUrls.johnKarahalis, baseUrls.writeAs),
+      window.location.href.replace(
+        baseUrls.blogJohnKarahalis,
+        baseUrls.blogWriteAs,
+      ),
       "/edit/meta",
     );
-  } else if (navigation.atBaseUrl(baseUrls.writeAs)) {
+  } else if (navigation.atBaseUrl(baseUrls.blogWriteAs)) {
     navigation.appendToCurrentPathnameAndNavigate("/edit/meta");
   } else {
     throw new BookmarkletError(
-      `Not at "${baseUrls.writeAs}" or "${baseUrls.johnKarahalis}".`,
+      `Not at "${baseUrls.blogWriteAs}" or "${baseUrls.blogJohnKarahalis}".`,
     );
   }
 }
@@ -352,22 +370,28 @@ export function getSlug(): string {
  * blog.johnkarahalis.com domain, and vice versa.
  */
 export function toggleDomain(): void {
-  if (navigation.atBaseUrl(baseUrls.writeAs)) {
+  if (navigation.atBaseUrl(baseUrls.blogWriteAs)) {
     // Edit pages cannot be loaded on blog.johnkarahalis.com, so in addition to
     // changing the domain, remove /edit from the URL. That way, if we started
     // on an edit page of write.as, we end up on the corresponding non-edit page
     // of blog.johnkarahalis.com.
     navigation.removeFromEndOfPathAndNavigate(
-      window.location.href.replace(baseUrls.writeAs, baseUrls.johnKarahalis),
+      window.location.href.replace(
+        baseUrls.blogWriteAs,
+        baseUrls.blogJohnKarahalis,
+      ),
       "/edit",
     );
-  } else if (navigation.atBaseUrl(baseUrls.johnKarahalis)) {
+  } else if (navigation.atBaseUrl(baseUrls.blogJohnKarahalis)) {
     navigation.navigate(
-      window.location.href.replace(baseUrls.johnKarahalis, baseUrls.writeAs),
+      window.location.href.replace(
+        baseUrls.blogJohnKarahalis,
+        baseUrls.blogWriteAs,
+      ),
     );
   } else {
     throw new BookmarkletError(
-      `Not at "${baseUrls.writeAs}" or "${baseUrls.johnKarahalis}".`,
+      `Not at "${baseUrls.blogWriteAs}" or "${baseUrls.blogJohnKarahalis}".`,
     );
   }
 }
@@ -396,18 +420,18 @@ export function toggleDomain(): void {
  */
 export function getPublicFacingUrl(urlStr: string): string | null {
   const urlHasWriteAsBase: boolean = navigation.isBaseUrl(
-    baseUrls.writeAs,
+    baseUrls.blogWriteAs,
     urlStr,
   );
   const urlHasJohnKarahalisBase: boolean = navigation.isBaseUrl(
-    baseUrls.johnKarahalis,
+    baseUrls.blogJohnKarahalis,
     urlStr,
   );
 
   if (!urlHasWriteAsBase && !urlHasJohnKarahalisBase) {
     throw new BookmarkletError(
-      `URL must have a base of "${baseUrls.writeAs}" or ` +
-        `"${baseUrls.johnKarahalis}".`,
+      `URL must have a base of "${baseUrls.blogWriteAs}" or ` +
+        `"${baseUrls.blogJohnKarahalis}".`,
     );
   }
 
@@ -416,11 +440,14 @@ export function getPublicFacingUrl(urlStr: string): string | null {
   if (isEditPage(urlStr) || isEditMetaPage(urlStr)) {
     publicFacingUrl = null;
   } else if (urlHasWriteAsBase) {
-    publicFacingUrl = urlStr.replace(baseUrls.writeAs, baseUrls.johnKarahalis);
+    publicFacingUrl = urlStr.replace(
+      baseUrls.blogWriteAs,
+      baseUrls.blogJohnKarahalis,
+    );
   } else {
     // By process of elimination, considering the `throw` condition earlier in
     // this function and the `else if` condition tested directly above, we now
-    // know the URL must have a base of `baseUrls.johnKarahalis`.
+    // know the URL must have a base of `baseUrls.blogJohnKarahalis`.
     publicFacingUrl = urlStr;
   }
 
