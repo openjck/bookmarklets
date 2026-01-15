@@ -161,7 +161,13 @@ function finalize(alertAdditions?: FinalAlertAdditions): void {
 }
 
 /**
- * TODO: Write JSDoc.
+ * Run the first step.
+ *
+ * In the first step, tags are inserted and the user is prompted to edit the
+ * tags and title as desired.
+ *
+ * @param setNextStepNumberFn - A function to run near the end of this step to
+ *                              indicate that the next step is ready to be run.
  */
 function step1(setNextStepNumberFn: SetNextStepNumberFunction): void {
   if (!blog.isEditPage(window.location.href)) {
@@ -187,7 +193,13 @@ function step1(setNextStepNumberFn: SetNextStepNumberFunction): void {
 }
 
 /**
- * TODO: Write JSDoc.
+ * Run the second step.
+ *
+ * In the second step, the blog post being edited is confirmed to have only one
+ * set of tags.
+ *
+ * @param setNextStepNumberFn - A function to run near the end of this step to
+ *                              indicate that the next step is ready to be run.
  */
 async function step2(
   setNextStepNumberFn: SetNextStepNumberFunction,
@@ -200,7 +212,21 @@ async function step2(
 }
 
 /**
- * TODO: Write JSDoc.
+ * Run the third step.
+ *
+ * In the third step, a new slug is generated based on the title of the blog
+ * post. If the new slug is the same as the old slug, the user is notified of
+ * that fact and the bookmarklet completes its work. If the new slug is
+ * different than the old slug, the user is given the option of switching to the
+ * new slug.
+ *
+ * In WriteFreely, old slugs do not redirect to new slugs, so the user is told
+ * how many viewers the blog post has had before they decide whether they would
+ * like to change the slug. If the post has had many views, the user may decide
+ * that they do not want to change the slug.
+ *
+ * @param setNextStepNumberFn - A function to run near the end of this step to
+ *                              indicate that the next step is ready to be run.
  */
 async function step3(
   setNextStepNumberFn: SetNextStepNumberFunction,
@@ -243,7 +269,13 @@ async function step3(
 }
 
 /**
- * TODO: Write JSDoc.
+ * Run the fourth step.
+ *
+ * In the fourth step, the new slug is applied. This step is only run if the
+ * user chose to switch to the new slug.
+ *
+ * @param setNextStepNumberFn - A function to run near the end of this step to
+ *                              indicate that the next step is ready to be run.
  */
 async function step4(
   setNextStepNumberFn: SetNextStepNumberFunction,
@@ -274,7 +306,11 @@ async function step4(
 }
 
 /**
- * TODO: Write JSDoc.
+ * Run the fifth step.
+ *
+ * In the fifth step, a message is shown indicating that the metadata update is
+ * complete and that the browser will navigate to the view page of the blog
+ * post. Then, the browser performs that navigation.
  */
 function step5(): void {
   finalize({ after: "Navigating to the view page of this blog post…" });
