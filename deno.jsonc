@@ -27,6 +27,7 @@
     "lint": "deno task 'lint-*'",
     "lint-builtin": "deno lint",
     "lint-check": "deno check",
-    "lint-format": "deno fmt --check"
+    "lint-format": "deno fmt --check",
+    "smoke-test-and-build": "deno task format && deno task lint && deno task build"
   }
 }
