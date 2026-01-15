@@ -66,7 +66,7 @@ for await (const entry of Deno.readDir(dirs.src)) {
     );
   }
 
-  const entryExtension = entryExtensionMatches.groups.extension;
+  const entryExtension: string = entryExtensionMatches.groups.extension;
 
   if (allowedExtensions.includes(entryExtension)) {
     const outfileBasename: string = entry.name.replace(/\.[^.]+$/, "") + ".js";

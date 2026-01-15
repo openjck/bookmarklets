@@ -170,7 +170,7 @@ function finalize(alertAdditions?: FinalAlertAdditions): void {
  *                              indicate that the next step is ready to be run.
  */
 function step1(setNextStepNumberFn: SetNextStepNumberFunction): void {
-  if (!blog.isEditPage(window.location.href)) {
+  if (!blog.isBlogPostEditPage(window.location.href)) {
     throw new BookmarkletError(
       "This bookmarklet must be run on the edit page of a single blog post.",
     );

@@ -70,14 +70,26 @@ export async function getWritingArea(
 }
 
 /**
- * Return `true` if the provided URL is the URL of a WriteFreely edit page.
+ * Return `true` if the provided URL is the URL of a new post creation page.
  *
- * @param urlStr - The URL of the page to test.
+ * @param urlStr - The URL to test.
  *
- * @returns `true` if the provided URL is the URL of a WriteFreely edit page,
+ * @returns `true` if the provided URL is the URL of a new post creation page,
  *          otherwise `false`.
  */
-export function isEditPage(urlStr: string): boolean {
+export function isNewPostCreationPage(urlStr: string) {
+  return writeAsCreateUrls.includes(urlStr);
+}
+
+/**
+ * Return `true` if the provided URL is the URL of a blog post edit page.
+ *
+ * @param urlStr - The URL to test.
+ *
+ * @returns `true` if the provided URL is the URL of a blog post edit page,
+ *          otherwise `false`.
+ */
+export function isBlogPostEditPage(urlStr: string): boolean {
   const url: URL = new URL(urlStr);
 
   return url.href.startsWith(baseUrls.blogWriteAs) &&
@@ -85,25 +97,37 @@ export function isEditPage(urlStr: string): boolean {
 }
 
 /**
+ * Return `true` if the provided URL is the URL of a anonymous post edit page.
+ *
+ * @param urlStr - The URL to test.
+ *
+ * @returns `true` if the provided URL is the URL of a anonymous post edit page,
+ *          otherwise `false`.
+ */
+export function isAnonymousPostEditPage(urlStr: string): boolean {
+  return navigation.isBaseUrl(baseUrls.writeAsEditAnonymousPost, urlStr);
+}
+
+/**
  * Return `true` if the provided URL is of a WriteFreely "Edit metadata" page.
  *
- * @param urlStr - The URL of the page to test.
+ * @param urlStr - The URL to test.
  *
  * @returns `true` if the provided URL is the URL of a WriteFreely "Edit
  *          metadata" page, otherwise `false`.
  */
-export function isEditMetaPage(urlStr: string): boolean {
+export function isBlogPostEditMetaPage(urlStr: string): boolean {
   const url: URL = new URL(urlStr);
 
-  return url.href.startsWith(baseUrls.blogWriteAs) &&
+  return navigation.isBaseUrl(baseUrls.blogWriteAs, url.href) &&
     url.pathname.endsWith("/edit/meta");
 }
 
 /**
  * Insert all tags used on the blog at the bottom of the writing area.
  *
- * Precondition: This function must be run on the edit page for a single blog
- * post, the edit page for anonymous post, or the new post creation page.
+ * Precondition: This function must be run on the new post creation page, the
+ * edit page of a single blog post, or the edit page of a single anonymous post.
  *
  * Tags are added two newlines below the current text in the writing area. Tags
  * are separated by spaces, and each tag begins with the pound sign.
@@ -120,13 +144,14 @@ export function isEditMetaPage(urlStr: string): boolean {
  */
 export async function insertTags(): Promise<void> {
   if (
-    !isEditPage(window.location.href) &&
-    !navigation.atBaseUrl(baseUrls.writeAsEditAnonymousPost) &&
-    !writeAsCreateUrls.includes(window.location.href)
+    !isNewPostCreationPage(window.location.href) &&
+    !isBlogPostEditPage(window.location.href) &&
+    !isAnonymousPostEditPage(window.location.href)
   ) {
     throw new BookmarkletError(
-      "This bookmarklet must be run on the edit page for a single blog post, " +
-        "the edit page for anonymous post, or the new post creation page.",
+      "This bookmarklet must be run on the new post creation page, the edit " +
+        "page of a single blog post, or the edit page of a single anonymous " +
+        "post.",
     );
   }
 
@@ -163,7 +188,7 @@ export async function insertTags(): Promise<void> {
  *          there is a title) or `null` (if there is no title).
  */
 export async function getTitle(): Promise<string | null> {
-  if (isEditPage(window.location.href)) {
+  if (isBlogPostEditPage(window.location.href)) {
     const writingArea: HTMLTextAreaElement = await getWritingArea();
     const writingAreaText = writingArea.value;
 
@@ -280,7 +305,7 @@ export function isEditable(urlStr: string): boolean {
  * blog post, on either domain.
  */
 export function navigateToEditPage(): void {
-  if (isEditPage(window.location.href)) {
+  if (isBlogPostEditPage(window.location.href)) {
     throw new BookmarkletError("You are already on the edit page.");
   }
 
@@ -310,7 +335,7 @@ export function navigateToEditPage(): void {
  * blog post, on either domain.
  */
 export function navigateToEditMetaPage(): void {
-  if (isEditMetaPage(window.location.href)) {
+  if (isBlogPostEditMetaPage(window.location.href)) {
     throw new BookmarkletError('You are already on the "Edit metadata" page.');
   }
 
@@ -437,7 +462,7 @@ export function getPublicFacingUrl(urlStr: string): string | null {
 
   let publicFacingUrl: string | null;
 
-  if (isEditPage(urlStr) || isEditMetaPage(urlStr)) {
+  if (isBlogPostEditPage(urlStr) || isBlogPostEditMetaPage(urlStr)) {
     publicFacingUrl = null;
   } else if (urlHasWriteAsBase) {
     publicFacingUrl = urlStr.replace(
