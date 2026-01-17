@@ -13,7 +13,7 @@ type BaseURLs = {
  */
 const writeAsCreateUrls = [
   "https://write.as/",
-  "https://write.as.#",
+  "https://write.as/#",
 ];
 
 /**
