@@ -88,7 +88,14 @@ function showInstructionsEditTitleAndTags(): void {
  */
 async function getNumSetsOfTags(): Promise<number> {
   const writingArea: HTMLTextAreaElement = await blog.getWritingArea();
-  const matches: RegExpMatchArray | null = writingArea.value.match(/\n\s*#/g);
+
+  // In this regex, the last bit ([^ #]) ensures that we do not match any
+  // Markdown headings, which have multiple pound signs and/or have a space
+  // after the pound sign.
+  const matches: RegExpMatchArray | null = writingArea.value.match(
+    /\n\s*#[^ #]/g,
+  );
+
   const numSetsOfTags: number = matches === null ? 0 : matches.length;
 
   return numSetsOfTags;
