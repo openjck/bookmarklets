@@ -125,43 +125,22 @@ export function removeFromCurrentPathnameAndNavigate(removal: string): void {
 }
 
 /**
- * Return true if the provided target URL begins with the provided test URL.
- *
- * @example
- * isBaseUrl("https://www.example.com/about/", "https://www.example.com/about/me"); // true
- *
- * @example
- * atBaseUrl("https://www.example.com/contact/, "https://www.example.com/about/me/contact"); // false
- *
- * @param testUrl - The test URL, which should be compared with the target URL
- *                  (`targetUrl`).
- * @param targetUrl - The target URL, which should be compared with the test URL
- *                    (`testUrl`).
- *
- * @returns `true` if the provided target URL begins with the provided test URL,
- *          otherwise `false`.
- */
-export function isBaseUrl(testUrl: string, targetUrl: string): boolean {
-  return targetUrl.startsWith(testUrl);
-}
-
-/**
- * Return true if the currently-loaded URL begins with the provided test URL.
+ * Return true if the currently-loaded URL starts with the provided test URL.
  *
  * @example
  * // The currently-loaded URL is "https://www.example.com/about/me/contact".
- * atBaseUrl("https://www.example.com/about/"); // true
+ * currentUrlStartsWith("https://www.example.com/about/"); // true
  *
  * @example
  * // The currently-loaded URL is "https://www.example.com/about/me/contact".
- * atBaseUrl("https://www.example.com/contact/"); // false
+ * currentUrlStartsWith("https://www.example.com/contact/"); // false
  *
  * @param testUrl - The test URL, which should be compared with the
  *                  currently-loaded URL.
  *
- * @returns `true` if the currently-loaded URL begins with the provided test
+ * @returns `true` if the currently-loaded URL starts with the provided test
  *          URL, otherwise `false`.
  */
-export function atBaseUrl(testUrl: string): boolean {
-  return isBaseUrl(testUrl, window.location.href);
+export function currentUrlStartsWith(testUrl: string): boolean {
+  return window.location.href.startsWith(testUrl);
 }

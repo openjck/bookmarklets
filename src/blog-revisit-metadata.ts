@@ -130,34 +130,57 @@ function clearSessionStorage(): void {
  *
  * This function should be run whether the bookmarklet completes its execution,
  * either successfully or unsuccessfully.
- *
- * @param alertAdditions - Strings that should be added before or after the
- *                         final alert message. Omit the argument entirely to
- *                         not modify the final alert message.
  */
-function finalize(alertAdditions?: FinalAlertAdditions): void {
+function cleanUp(): void {
   clearSessionStorage();
   stepRunner.cleanUp();
-
-  let alertMessage: string = "The metadata update is complete.";
-
-  if (alertAdditions?.before !== undefined) {
-    alertMessage = `${alertAdditions.before}\n` +
-      "\n" +
-      alertMessage;
-  }
-
-  if (alertAdditions?.after !== undefined) {
-    alertMessage = `${alertMessage}\n` +
-      "\n" +
-      alertAdditions.after;
-  }
-
-  alert(alertMessage);
 
   // This isn't important enough to show in the alert, but it's good to know, so
   // print it to the console.
   log("All state has been cleaned up.");
+}
+
+/**
+ * Clean up, explain that update is complete, and check for broken links.
+ *
+ * This function should be run whether the bookmarklet completes its execution
+ * **successfully**.
+ *
+ * @param successMessageAdditions - Strings that should be added before or after
+ *                                  the alert message about the bookmarklet
+ *                                  completing its work successfully. Omit the
+ *                                  argument entirely to not modify the alert
+ *                                  message.
+ */
+function finalize(successMessageAdditions?: FinalAlertAdditions): void {
+  cleanUp();
+
+  let successMessage: string = "The metadata update is complete.";
+
+  if (successMessageAdditions?.before !== undefined) {
+    successMessage = `${successMessageAdditions.before}\n` +
+      "\n" +
+      successMessage;
+  }
+
+  if (successMessageAdditions?.after !== undefined) {
+    successMessage = `${successMessage}\n` +
+      "\n" +
+      successMessageAdditions.after;
+  }
+
+  alert(successMessage);
+
+  const brokenInternalLinkHrefs: string[] = blog.getBrokenInternalLinkHrefs();
+
+  if (brokenInternalLinkHrefs.length > 0) {
+    alert(
+      "NOTE: This blog post has some broken internal links to the following " +
+        "URLs:\n" +
+        "\n" +
+        brokenInternalLinkHrefs.join("\n\n"),
+    );
+  }
 }
 
 /**
@@ -327,7 +350,7 @@ alertOnError(async () => {
   try {
     await stepRunner.runCurrentStep();
   } catch (err: unknown) {
-    finalize();
+    cleanUp();
     throw err;
   }
 });

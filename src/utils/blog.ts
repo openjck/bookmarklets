@@ -105,7 +105,7 @@ export function isBlogPostEditPage(urlStr: string): boolean {
  *          otherwise `false`.
  */
 export function isAnonymousPostEditPage(urlStr: string): boolean {
-  return navigation.isBaseUrl(baseUrls.writeAsEditAnonymousPost, urlStr);
+  return urlStr.startsWith(baseUrls.writeAsEditAnonymousPost);
 }
 
 /**
@@ -119,7 +119,7 @@ export function isAnonymousPostEditPage(urlStr: string): boolean {
 export function isBlogPostEditMetaPage(urlStr: string): boolean {
   const url: URL = new URL(urlStr);
 
-  return navigation.isBaseUrl(baseUrls.blogWriteAs, url.href) &&
+  return url.href.startsWith(baseUrls.blogWriteAs) &&
     url.pathname.endsWith("/edit/meta");
 }
 
@@ -281,8 +281,8 @@ export function isEditable(urlStr: string): boolean {
 
   if (
     (
-      !navigation.atBaseUrl(baseUrls.blogWriteAs) &&
-      !navigation.atBaseUrl(baseUrls.blogJohnKarahalis)
+      !navigation.currentUrlStartsWith(baseUrls.blogWriteAs) &&
+      !navigation.currentUrlStartsWith(baseUrls.blogJohnKarahalis)
     ) ||
     url.pathname === "/" ||
     url.pathname.startsWith("/page/") ||
@@ -313,13 +313,13 @@ export function navigateToEditPage(): void {
     throw new BookmarkletError("This page cannot be edited.");
   }
 
-  if (navigation.atBaseUrl(baseUrls.blogJohnKarahalis)) {
+  if (navigation.currentUrlStartsWith(baseUrls.blogJohnKarahalis)) {
     const writeAsUrl: string = window.location.href.replace(
       baseUrls.blogJohnKarahalis,
       baseUrls.blogWriteAs,
     );
     navigation.appendToPathAndNavigate(writeAsUrl, "/edit");
-  } else if (navigation.atBaseUrl(baseUrls.blogWriteAs)) {
+  } else if (navigation.currentUrlStartsWith(baseUrls.blogWriteAs)) {
     navigation.appendToCurrentPathnameAndNavigate("/edit");
   } else {
     throw new BookmarkletError(
@@ -343,7 +343,7 @@ export function navigateToEditMetaPage(): void {
     throw new BookmarkletError("This page cannot be edited.");
   }
 
-  if (navigation.atBaseUrl(baseUrls.blogJohnKarahalis)) {
+  if (navigation.currentUrlStartsWith(baseUrls.blogJohnKarahalis)) {
     navigation.appendToPathAndNavigate(
       window.location.href.replace(
         baseUrls.blogJohnKarahalis,
@@ -351,7 +351,7 @@ export function navigateToEditMetaPage(): void {
       ),
       "/edit/meta",
     );
-  } else if (navigation.atBaseUrl(baseUrls.blogWriteAs)) {
+  } else if (navigation.currentUrlStartsWith(baseUrls.blogWriteAs)) {
     navigation.appendToCurrentPathnameAndNavigate("/edit/meta");
   } else {
     throw new BookmarkletError(
@@ -395,7 +395,7 @@ export function getSlug(): string {
  * blog.johnkarahalis.com domain, and vice versa.
  */
 export function toggleDomain(): void {
-  if (navigation.atBaseUrl(baseUrls.blogWriteAs)) {
+  if (navigation.currentUrlStartsWith(baseUrls.blogWriteAs)) {
     // Edit pages cannot be loaded on blog.johnkarahalis.com, so in addition to
     // changing the domain, remove /edit from the URL. That way, if we started
     // on an edit page of write.as, we end up on the corresponding non-edit page
@@ -407,7 +407,7 @@ export function toggleDomain(): void {
       ),
       "/edit",
     );
-  } else if (navigation.atBaseUrl(baseUrls.blogJohnKarahalis)) {
+  } else if (navigation.currentUrlStartsWith(baseUrls.blogJohnKarahalis)) {
     navigation.navigate(
       window.location.href.replace(
         baseUrls.blogJohnKarahalis,
@@ -444,13 +444,9 @@ export function toggleDomain(): void {
  *          public-facing equivalent.
  */
 export function getPublicFacingUrl(urlStr: string): string | null {
-  const urlHasWriteAsBase: boolean = navigation.isBaseUrl(
-    baseUrls.blogWriteAs,
-    urlStr,
-  );
-  const urlHasJohnKarahalisBase: boolean = navigation.isBaseUrl(
+  const urlHasWriteAsBase: boolean = urlStr.startsWith(baseUrls.blogWriteAs);
+  const urlHasJohnKarahalisBase: boolean = urlStr.startsWith(
     baseUrls.blogJohnKarahalis,
-    urlStr,
   );
 
   if (!urlHasWriteAsBase && !urlHasJohnKarahalisBase) {
@@ -477,4 +473,54 @@ export function getPublicFacingUrl(urlStr: string): string | null {
   }
 
   return publicFacingUrl;
+}
+
+/**
+ * Return `true` if the given URL is internal but responds with 4xx or higher.
+ *
+ * @param urlStr - The URL to test.
+ *
+ * @return `true` if the given URL is internal (i.e., starts with
+ *         "https://blog.johnkarahalis.com/") and responds with 4xx or higher,
+ *         otherwise `false`.
+ */
+export async function isBrokenInternalUrl(urlStr: string): Promise<boolean> {
+  if (!urlStr.startsWith(baseUrls.blogJohnKarahalis)) {
+    return false;
+  }
+
+  try {
+    const response = await fetch(urlStr);
+
+    if (response.status >= 400) {
+      return true;
+    }
+
+    return false;
+  } catch {
+    return true;
+  }
+}
+
+/**
+ * Return an array of `href`s of broken internal links on the current page.
+ *
+ * Precondition: This function must be called from the view page of a single
+ * blog post, on either domain.
+ *
+ * @return An array of `href`s of broken internal links on the current page.
+ */
+export function getBrokenInternalLinkHrefs(): string[] {
+  // We don't need to test a.hashtag links (links representing tags) because
+  // they always lead to a valid page.
+  const articleAnchors: NodeListOf<HTMLAnchorElement> = document
+    .querySelectorAll(
+      "article a:not(.hashtag)",
+    );
+
+  const articleAnchorHrefs: string[] = Array.from(articleAnchors).map(
+    (articleAnchor: HTMLAnchorElement) => articleAnchor.href,
+  );
+
+  return articleAnchorHrefs.filter(isBrokenInternalUrl);
 }
