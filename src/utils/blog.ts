@@ -485,12 +485,30 @@ export function getPublicFacingUrl(urlStr: string): string | null {
  *         otherwise `false`.
  */
 export async function isBrokenInternalUrl(urlStr: string): Promise<boolean> {
-  if (!urlStr.startsWith(baseUrls.blogJohnKarahalis)) {
+  const isWriteAsUrl: boolean = urlStr.startsWith(baseUrls.blogJohnKarahalis);
+  const isJohnKarahalisUrl: boolean = urlStr.startsWith(
+    baseUrls.blogJohnKarahalis,
+  );
+
+  if (!isWriteAsUrl && !isJohnKarahalisUrl) {
     return false;
   }
 
   try {
-    const response = await fetch(urlStr);
+    let writeAsUrl: string;
+
+    // Attempting to fetch a blog.johnkarahalis.com URL while on the write.as
+    // domain will cause a CORS error.
+    if (isJohnKarahalisUrl) {
+      writeAsUrl = urlStr.replace(
+        baseUrls.blogJohnKarahalis,
+        baseUrls.blogWriteAs,
+      );
+    } else {
+      writeAsUrl = urlStr;
+    }
+
+    const response = await fetch(writeAsUrl);
 
     if (response.status >= 400) {
       return true;
@@ -506,11 +524,13 @@ export async function isBrokenInternalUrl(urlStr: string): Promise<boolean> {
  * Return an array of `href`s of broken internal links on the current page.
  *
  * Precondition: This function must be called from the view page of a single
- * blog post, on either domain.
+ * blog post on the write.as domain.
  *
  * @return An array of `href`s of broken internal links on the current page.
  */
-export function getBrokenInternalLinkHrefs(): string[] {
+export async function getBrokenInternalLinkHrefs(): Promise<string[]> {
+  const brokenInternalLinkHrefs: string[] = [];
+
   // We don't need to test a.hashtag links (links representing tags) because
   // they always lead to a valid page.
   const articleAnchors: NodeListOf<HTMLAnchorElement> = document
@@ -518,9 +538,11 @@ export function getBrokenInternalLinkHrefs(): string[] {
       "article a:not(.hashtag)",
     );
 
-  const articleAnchorHrefs: string[] = Array.from(articleAnchors).map(
-    (articleAnchor: HTMLAnchorElement) => articleAnchor.href,
-  );
+  for (const articleAnchor of articleAnchors) {
+    if (await isBrokenInternalUrl(articleAnchor.href)) {
+      brokenInternalLinkHrefs.push(articleAnchor.href);
+    }
+  }
 
-  return articleAnchorHrefs.filter(isBrokenInternalUrl);
+  return brokenInternalLinkHrefs;
 }

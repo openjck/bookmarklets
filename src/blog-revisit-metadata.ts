@@ -143,6 +143,10 @@ function cleanUp(): void {
 /**
  * Clean up, explain that update is complete, and check for broken links.
  *
+ * Precondition: This function must be called from the view page of a single
+ * blog post on the write.as domain. (That's because getBrokenInternalLinkHrefs
+ * must be run from the write.as domain.)
+ *
  * This function should be run whether the bookmarklet completes its execution
  * **successfully**.
  *
@@ -152,7 +156,9 @@ function cleanUp(): void {
  *                                  argument entirely to not modify the alert
  *                                  message.
  */
-function finalize(successMessageAdditions?: FinalAlertAdditions): void {
+async function finalize(
+  successMessageAdditions?: FinalAlertAdditions,
+): Promise<void> {
   cleanUp();
 
   let successMessage: string = "The metadata update is complete.";
@@ -171,12 +177,12 @@ function finalize(successMessageAdditions?: FinalAlertAdditions): void {
 
   alert(successMessage);
 
-  const brokenInternalLinkHrefs: string[] = blog.getBrokenInternalLinkHrefs();
+  const brokenInternalLinkHrefs: string[] = await blog
+    .getBrokenInternalLinkHrefs();
 
   if (brokenInternalLinkHrefs.length > 0) {
     alert(
-      "NOTE: This blog post has some broken internal links to the following " +
-        "URLs:\n" +
+      "This blog post has some broken internal links to the following URLs:\n" +
         "\n" +
         brokenInternalLinkHrefs.join("\n\n"),
     );
@@ -336,8 +342,17 @@ async function step4(
  * post. Then, the browser performs that navigation.
  */
 function step5(): void {
-  finalize({ after: "Navigating to the view page of this blog post…" });
   navigation.removeFromCurrentPathnameAndNavigate("/edit/meta");
+}
+
+/**
+ * Run the sixth step.
+ *
+ * The sixth step simply runs finalize() to clean up, alert about work being
+ * done, and check for broken links.
+ */
+function step6(): void {
+  finalize();
 }
 
 stepRunner.addStep(step1);
@@ -345,6 +360,7 @@ stepRunner.addStep(step2);
 stepRunner.addStep(step3);
 stepRunner.addStep(step4);
 stepRunner.addStep(step5);
+stepRunner.addStep(step6);
 
 alertOnError(async () => {
   try {
