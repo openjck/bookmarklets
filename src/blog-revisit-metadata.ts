@@ -343,8 +343,6 @@ async function step2(
 async function step3(
   setNextStepNumberFn: SetNextStepNumberFunction,
 ): Promise<void> {
-  const viewerCount: number = await getViewerCount();
-
   const currentSlug: string = blog.getSlug();
   const newSlug: string | null = await blog.slugifyTitle();
 
@@ -353,6 +351,8 @@ async function step3(
   } else if (newSlug === currentSlug) {
     finalize({ before: "The slug would not be changed." });
   } else {
+    const viewerCount: number = await getViewerCount();
+
     let viewerMessage: string;
     if (viewerCount === 1) {
       viewerMessage = "There has been 1 viewer.";
