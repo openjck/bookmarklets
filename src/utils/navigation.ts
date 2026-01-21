@@ -144,3 +144,25 @@ export function removeFromCurrentPathnameAndNavigate(removal: string): void {
 export function currentUrlStartsWith(testUrl: string): boolean {
   return window.location.href.startsWith(testUrl);
 }
+
+/**
+ * Return `true` if the given URL responds with an HTTP code below 400.
+ *
+ * @param urlStr - The URL to test.
+ *
+ * @return `true` if the given URL responds with an HTTP code below 400,
+ *         otherwise `false`.
+ */
+export async function isReachable(urlStr: string): Promise<boolean> {
+  try {
+    const response = await fetch(urlStr);
+
+    if (response.status < 400) {
+      return true;
+    } else {
+      return false;
+    }
+  } catch {
+    return false;
+  }
+}

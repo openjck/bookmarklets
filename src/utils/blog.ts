@@ -476,73 +476,40 @@ export function getPublicFacingUrl(urlStr: string): string | null {
 }
 
 /**
- * Return `true` if the given URL is internal but responds with 4xx or higher.
+ * Return link URLs that appear in the writing area and have the given base.
  *
- * @param urlStr - The URL to test.
+ * @param baseUrl - The base URL of link URLs from the writing area that should
+ *                  be returned.
  *
- * @return `true` if the given URL is internal (i.e., starts with
- *         "https://blog.johnkarahalis.com/") and responds with 4xx or higher,
- *         otherwise `false`.
+ * @return an array of link URLs that appear in the writing area and have the
+ *         given base.
  */
-export async function isBrokenInternalUrl(urlStr: string): Promise<boolean> {
-  const isWriteAsUrl: boolean = urlStr.startsWith(baseUrls.blogJohnKarahalis);
-  const isJohnKarahalisUrl: boolean = urlStr.startsWith(
-    baseUrls.blogJohnKarahalis,
+export async function getWritingAreaLinkUrlsWithBase(
+  baseUrl: string,
+): Promise<string[]> {
+  const writingArea: HTMLTextAreaElement = await getWritingArea();
+
+  // @ts-expect-error: The browser I'm using supports RegExp.escape().
+  const baseRegExpLiteral: RegExp = RegExp.escape(baseUrl);
+  const regExp: RegExp = new RegExp(
+    `\\((?<url>${baseRegExpLiteral}[^\\)]+)`,
+    "g",
   );
 
-  if (!isWriteAsUrl && !isJohnKarahalisUrl) {
-    return false;
+  const matches = writingArea.value.matchAll(regExp);
+
+  if (matches === null) {
+    return [];
   }
 
-  try {
-    let writeAsUrl: string;
-
-    // Attempting to fetch a blog.johnkarahalis.com URL while on the write.as
-    // domain will cause a CORS error.
-    if (isJohnKarahalisUrl) {
-      writeAsUrl = urlStr.replace(
-        baseUrls.blogJohnKarahalis,
-        baseUrls.blogWriteAs,
-      );
+  const urls: string[] = Array.from(matches).reduce((acc, match): string[] => {
+    const url = match?.groups?.url;
+    if (url === undefined) {
+      return acc;
     } else {
-      writeAsUrl = urlStr;
+      return [...acc, url];
     }
+  }, [] as string[]);
 
-    const response = await fetch(writeAsUrl);
-
-    if (response.status >= 400) {
-      return true;
-    }
-
-    return false;
-  } catch {
-    return true;
-  }
-}
-
-/**
- * Return an array of `href`s of broken internal links on the current page.
- *
- * Precondition: This function must be called from the view page of a single
- * blog post on the write.as domain.
- *
- * @return An array of `href`s of broken internal links on the current page.
- */
-export async function getBrokenInternalLinkHrefs(): Promise<string[]> {
-  const brokenInternalLinkHrefs: string[] = [];
-
-  // We don't need to test a.hashtag links (links representing tags) because
-  // they always lead to a valid page.
-  const articleAnchors: NodeListOf<HTMLAnchorElement> = document
-    .querySelectorAll(
-      "article a:not(.hashtag)",
-    );
-
-  for (const articleAnchor of articleAnchors) {
-    if (await isBrokenInternalUrl(articleAnchor.href)) {
-      brokenInternalLinkHrefs.push(articleAnchor.href);
-    }
-  }
-
-  return brokenInternalLinkHrefs;
+  return urls;
 }

@@ -2,8 +2,8 @@
  * Revisit and potentially change the title, tags, and/or slug of a single blog
  * post.
  *
- * Precondition: This bookmarklet must be run on the edit page of a single blog
- * post.
+ * Precondition: This bookmarklet must be run while on the edit page of a single
+ * blog post.
  *
  * I want to revisit these things because I only really started using titles
  * halfway through the thoughts migration, and I only really finalized my tag
@@ -79,33 +79,75 @@ function showInstructionsEditTitleAndTags(): void {
 }
 
 /**
- * Return `true` if the blog post being edited contains one set of tags.
+ * Return the number of sets of tags that appear in the writing area.
  *
- * Precondition: This function must be run on the edit page of a single blog
- * post.
+ * Precondition: This function must be run while on the edit page of a single
+ * blog post.
  *
- * If fewer or greater than one set of tags is found, prompt the user to use
- * exactly one set of tags and subsequently click the bookmarklet again.
- *
- * @returns `true` if the blog post being edited contains exactly one set of
- *          tags, otherwise `false`.
+ * @returns the number of sets of tags that appear in the writing area.
  */
-async function oneSetOfTags(): Promise<boolean> {
+async function getNumSetsOfTags(): Promise<number> {
   const writingArea: HTMLTextAreaElement = await blog.getWritingArea();
   const matches: RegExpMatchArray | null = writingArea.value.match(/\n\s*#/g);
   const numSetsOfTags: number = matches === null ? 0 : matches.length;
 
-  if (numSetsOfTags !== 1) {
-    alert(
-      `There must be exactly 1 set of tags, but ${numSetsOfTags} sets ` +
-        "exist.\n" +
-        "\n" +
-        "Click the bookmarklet again to continue.",
+  return numSetsOfTags;
+}
+
+/**
+ * Return an array of write.as link URLs that appear in the writing area.
+ *
+ * Precondition: This function must be run while on the edit page of a single
+ * blog post.
+ *
+ * @returns an array of write.as link URLs that appear in the writing area.
+ */
+async function getWriteAsLinkUrls(): Promise<string[]> {
+  return await blog.getWritingAreaLinkUrlsWithBase(blog.baseUrls.blogWriteAs);
+}
+
+/**
+ * Return array of broken blog.johnkarahalis.com links that are in writing area.
+ *
+ * Precondition: This function must be run while on the edit page of a single
+ * blog post.
+ *
+ * @returns an array of broken blog.johnkarahalis.com link URLs that appear in
+ *          the writing area.
+ */
+async function getBrokenPublicFacingLinkUrls(): Promise<string[]> {
+  const publicFacingUrls: string[] = await blog.getWritingAreaLinkUrlsWithBase(
+    blog.baseUrls.blogJohnKarahalis,
+  );
+
+  // We are currently on the write.as domain, and if we make a request to
+  // blog.johnkarahalis.com, the request will fail with a CORS error. For that
+  // reason, we need to convert the URLs to write.as URLs before testing if they
+  // are reachable. Thankfully, any blog.johnkarahalis.com URL is also reachable
+  // in its write.as form, and any blog.johnkarahalis.com URL that is
+  // unreachable is also unreachable in its write.as form.
+  const writeAsUrls = publicFacingUrls.map((url: string): string => {
+    return url.replace(
+      blog.baseUrls.blogJohnKarahalis,
+      blog.baseUrls.blogWriteAs,
     );
-    return false;
+  });
+
+  // This can't be done in a .filter() callback because .filter() does not wait
+  // for promises to resolve.
+  const unreachablePublicFacingUrls: string[] = [];
+  for (const writeAsUrl of writeAsUrls) {
+    const isReachable = await navigation.isReachable(writeAsUrl);
+    if (isReachable === false) {
+      const publicFacingUrl = writeAsUrl.replace(
+        blog.baseUrls.blogWriteAs,
+        blog.baseUrls.blogJohnKarahalis,
+      );
+      unreachablePublicFacingUrls.push(publicFacingUrl);
+    }
   }
 
-  return true;
+  return unreachablePublicFacingUrls;
 }
 
 /**
@@ -141,11 +183,7 @@ function cleanUp(): void {
 }
 
 /**
- * Clean up, explain that update is complete, and check for broken links.
- *
- * Precondition: This function must be called from the view page of a single
- * blog post on the write.as domain. (That's because getBrokenInternalLinkHrefs
- * must be run from the write.as domain.)
+ * Clean up and explain that the metadata update is complete.
  *
  * This function should be run whether the bookmarklet completes its execution
  * **successfully**.
@@ -156,9 +194,9 @@ function cleanUp(): void {
  *                                  argument entirely to not modify the alert
  *                                  message.
  */
-async function finalize(
+function finalize(
   successMessageAdditions?: FinalAlertAdditions,
-): Promise<void> {
+): void {
   cleanUp();
 
   let successMessage: string = "The metadata update is complete.";
@@ -176,17 +214,6 @@ async function finalize(
   }
 
   alert(successMessage);
-
-  const brokenInternalLinkHrefs: string[] = await blog
-    .getBrokenInternalLinkHrefs();
-
-  if (brokenInternalLinkHrefs.length > 0) {
-    alert(
-      "This blog post has some broken internal links to the following URLs:\n" +
-        "\n" +
-        brokenInternalLinkHrefs.join("\n\n"),
-    );
-  }
 }
 
 /**
@@ -201,7 +228,8 @@ async function finalize(
 function step1(setNextStepNumberFn: SetNextStepNumberFunction): void {
   if (!blog.isBlogPostEditPage(window.location.href)) {
     throw new BookmarkletError(
-      "This bookmarklet must be run on the edit page of a single blog post.",
+      "This bookmarklet must be run while on the edit page of a single blog " +
+        "post.",
     );
   }
 
@@ -224,8 +252,11 @@ function step1(setNextStepNumberFn: SetNextStepNumberFunction): void {
 /**
  * Run the second step.
  *
- * In the second step, the blog post being edited is confirmed to have only one
- * set of tags.
+ * In the second step, validations are run to confirm that only one set of tags
+ * exist, that no write.as URLs are present in the writing area, and that no
+ * broken blog.johnkarahalis.com URLs are present in the writing area. If any
+ * issues are found, the user is notified to fix them and click the bookmarklet
+ * again. Otherwise, the blog post is published.
  *
  * @param setNextStepNumberFn - A function to run near the end of this step to
  *                              indicate that the next step is ready to be run.
@@ -233,10 +264,55 @@ function step1(setNextStepNumberFn: SetNextStepNumberFunction): void {
 async function step2(
   setNextStepNumberFn: SetNextStepNumberFunction,
 ): Promise<void> {
-  const tagsVerified: boolean = await oneSetOfTags();
-  if (tagsVerified === true) {
+  class Step2ValidationError extends Error {}
+
+  try {
+    const numSetsOfTags: number = await getNumSetsOfTags();
+    if (numSetsOfTags !== 1) {
+      throw new Step2ValidationError(
+        `There must be exactly 1 set of tags, but ${numSetsOfTags} sets exist.`,
+      );
+    }
+
+    const writeAsLinkUrls: string[] = await getWriteAsLinkUrls();
+    if (writeAsLinkUrls.length > 0) {
+      throw new Step2ValidationError(
+        "The following write.as link URLs were found:\n" +
+          "\n" +
+          writeAsLinkUrls.join("\n\n") + "\n" +
+          "\n" +
+          "They must be removed. This blog should only use public-facing " +
+          "URLs in links so that the platform can be more easily changed in " +
+          "the future, if needed.",
+      );
+    }
+
+    const brokenInternalLinkUrls: string[] =
+      await getBrokenPublicFacingLinkUrls();
+    if (brokenInternalLinkUrls.length > 0) {
+      throw new Step2ValidationError(
+        "The following broken blog.johnkarahalis.com link URLs were found:\n" +
+          "\n" +
+          brokenInternalLinkUrls.join("\n\n") + "\n" +
+          "\n" +
+          "They must be removed because this blog should not have any broken " +
+          "links.",
+      );
+    }
+
+    // If no validation failed...
     setNextStepNumberFn();
-    await publishChanges();
+    publishChanges();
+  } catch (err: unknown) {
+    if (err instanceof Step2ValidationError) {
+      alert(
+        `${err.message}\n` +
+          "\n" +
+          "Fix the problem, then click the bookmarklet again to continue.",
+      );
+    } else {
+      throw err;
+    }
   }
 }
 
