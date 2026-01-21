@@ -418,17 +418,8 @@ async function step4(
  * post. Then, the browser performs that navigation.
  */
 function step5(): void {
+  finalize({ after: "Navigating to the view page of this blog post…" });
   navigation.removeFromCurrentPathnameAndNavigate("/edit/meta");
-}
-
-/**
- * Run the sixth step.
- *
- * The sixth step simply runs finalize() to clean up, alert about work being
- * done, and check for broken links.
- */
-function step6(): void {
-  finalize();
 }
 
 stepRunner.addStep(step1);
@@ -436,7 +427,6 @@ stepRunner.addStep(step2);
 stepRunner.addStep(step3);
 stepRunner.addStep(step4);
 stepRunner.addStep(step5);
-stepRunner.addStep(step6);
 
 alertOnError(async () => {
   try {
