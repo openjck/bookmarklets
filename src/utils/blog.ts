@@ -33,11 +33,9 @@ export const baseUrls: BaseURLs = {
  * All tags used on the blog, with the pound symbol prefix at the start of each.
  */
 export const tagVocabulary: string[] = [
-  "#Article",
   "#Favorites",
   "#FiveWordMovieReview",
   "#Life",
-  "#PublicNotice",
   "#Quotes",
   "#Recipes",
   "#SocialMedia",
