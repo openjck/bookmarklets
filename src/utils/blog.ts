@@ -1,11 +1,13 @@
 import BookmarkletError from "../errors/BookmarkletError.ts";
+import { removeFromEnd } from "./general.ts";
 import * as dom from "./dom.ts";
 import * as navigation from "./navigation.ts";
 
 type BaseURLs = {
-  blogWriteAs: string;
   blogJohnKarahalis: string;
+  blogWriteAs: string;
   writeAsEditAnonymousPost: string;
+  writeAs: string;
 };
 
 /**
@@ -27,6 +29,7 @@ export const baseUrls: BaseURLs = {
   // somewhat confusingly, is a blog post that is accessible only by link and
   // which is not actually associated with any blog.
   writeAsEditAnonymousPost: "https://write.as/edit/",
+  writeAs: "https://write.as/",
 };
 
 /**
@@ -280,7 +283,7 @@ export function isEditable(urlStr: string): boolean {
 
   if (
     (
-      !navigation.currentUrlStartsWith(baseUrls.blogWriteAs) &&
+      !navigation.currentUrlStartsWith(baseUrls.writeAs) &&
       !navigation.currentUrlStartsWith(baseUrls.blogJohnKarahalis)
     ) ||
     url.pathname === "/" ||
@@ -298,7 +301,7 @@ export function isEditable(urlStr: string): boolean {
 }
 
 /**
- * Navigate to the edit page of the blog post whose view page is loaded.
+ * Navigate to the edit page of the post whose view page is loaded.
  *
  * Precondition: This must be run when the user is on the view page of a single
  * blog post, on either domain.
@@ -312,14 +315,46 @@ export function navigateToEditPage(): void {
     throw new BookmarkletError("This page cannot be edited.");
   }
 
-  if (navigation.currentUrlStartsWith(baseUrls.blogJohnKarahalis)) {
+  // Whether the user is currently on the view page of a blog post on the
+  // public-facing domain.
+  const atPublicFacingBlogPostUrl: boolean = navigation.currentUrlStartsWith(
+    baseUrls.blogJohnKarahalis,
+  );
+
+  // Whether the user is currently on the view page of a blog post on the
+  // write.as domain.
+  const atWriteAsBlogPostUrl: boolean = navigation.currentUrlStartsWith(
+    baseUrls.blogWriteAs,
+  );
+
+  // Whether the user is on the view page of an anonymous post.
+  //
+  // An anonymous post is a post which one can only access if they have the URL.
+  // That is, it's not linked from anywhere else. It's useful for working on
+  // drafts.
+  const atAnonymousPostUrl: boolean =
+    navigation.currentUrlStartsWith(baseUrls.writeAs) &&
+    window.location.pathname.endsWith(".md");
+
+  if (atPublicFacingBlogPostUrl) {
     const writeAsUrl: string = window.location.href.replace(
       baseUrls.blogJohnKarahalis,
       baseUrls.blogWriteAs,
     );
     navigation.appendToPathAndNavigate(writeAsUrl, "/edit");
-  } else if (navigation.currentUrlStartsWith(baseUrls.blogWriteAs)) {
+  } else if (atWriteAsBlogPostUrl) {
     navigation.appendToCurrentPathnameAndNavigate("/edit");
+  } else if (atAnonymousPostUrl) {
+    const pathnameWithoutExtension: string = removeFromEnd(
+      window.location.pathname,
+      ".md",
+    );
+
+    const filenameWithoutExtension: string = pathnameWithoutExtension.substring(
+      1,
+    );
+
+    window.location.pathname = `/edit/${filenameWithoutExtension}`;
   } else {
     throw new BookmarkletError(
       `Not at "${baseUrls.blogWriteAs}" or "${baseUrls.blogJohnKarahalis}".`,
