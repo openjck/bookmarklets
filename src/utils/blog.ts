@@ -34,6 +34,8 @@ export const baseUrls: BaseURLs = {
 
 /**
  * All tags used on the blog, with the pound symbol prefix at the start of each.
+ *
+ * Tags are sorted alphabetically.
  */
 export const tagVocabulary: string[] = [
   "#Favorites",
@@ -46,7 +48,7 @@ export const tagVocabulary: string[] = [
   "#SoftwareDevelopment",
   "#Tech",
   "#TechTips",
-];
+].sort();
 
 /**
  * Return the HTML element that the user types in to write or edit a blog post.
