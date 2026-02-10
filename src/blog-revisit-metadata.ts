@@ -31,6 +31,8 @@ const ssKeyNewSlug: string = ssKeyPrefix + "new-slug";
 
 const stepRunner: StepRunner = new StepRunner(ssKeyPrefix);
 
+const publishButtonSelector = "button#publish";
+
 type FinalAlertAdditions = {
   before?: string;
   after?: string;
@@ -163,7 +165,7 @@ async function getBrokenPublicFacingLinkUrls(): Promise<string[]> {
 async function publishChanges(): Promise<void> {
   const publishButton: HTMLButtonElement = await dom.getElement<
     HTMLButtonElement
-  >("button#publish");
+  >(publishButtonSelector);
   publishButton.click();
 }
 
@@ -304,6 +306,16 @@ async function step2(
           "\n" +
           "They must be removed because this blog should not have any broken " +
           "links.",
+      );
+    }
+
+    const publishButton: HTMLButtonElement = await dom.getElement<
+      HTMLButtonElement
+    >(publishButtonSelector);
+
+    if (publishButton.classList.contains("disabled")) {
+      throw new Step2ValidationError(
+        "The publish button is disabled.",
       );
     }
 
