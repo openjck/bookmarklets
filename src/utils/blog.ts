@@ -250,7 +250,7 @@ export function slugify(str: string): string {
     .replace(/^#\s*/, "")
     .replace(/(\/|\\)+/g, "-")
     .replace(/\s+/g, "-")
-    .replace(/[^\w-]/, "")
+    .replace(/[^\w-]/g, "")
     .replace(/-+/g, "-")
     .replace(/^-*/, "")
     .replace(/-*$/, "")
