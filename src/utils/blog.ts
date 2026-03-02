@@ -228,10 +228,13 @@ export async function getTitle(): Promise<string | null> {
  * I will. For now, this is close enough for my needs.) WriteFreely converts
  * a title to a slug only when a blog post is first published.
  *
- * Underscores and hyphens are preserved, one or more forward slashes or
- * backslashes is replaced by a single hyphen, all whitespace is replaced with
- * hyphens, other non-alphanumeric characters are removed, and all remaining
- * characters are made lower-case.
+ * Underscores and hyphens are preserved, one or more consecutive slashes is
+ * replaced by a single hyphen, one or more consecutive whitespace characters is
+ * replaced by a single hyphen, other non-alphanumeric characters are removed,
+ * multiple consecutive hyphens are replaced by a single hyphen, one or more
+ * consecutive hyphens at the beginning of the string is removed, one or more
+ * hyphens at the end of the string are removed, and all remaining characters
+ * are made lower-case.
  *
  * @example
  * // Returns the following:
@@ -247,7 +250,10 @@ export function slugify(str: string): string {
     .replace(/^#\s*/, "")
     .replace(/(\/|\\)+/g, "-")
     .replace(/\s+/g, "-")
-    .replace(/[^\w-]/g, "")
+    .replace(/[^\w-]/, "")
+    .replace(/-+/g, "-")
+    .replace(/^-*/, "")
+    .replace(/-*$/, "")
     .toLowerCase();
 }
 
