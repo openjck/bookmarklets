@@ -74,10 +74,11 @@ for await (const entry of Deno.readDir(dirs.src)) {
     const infileAbsolutePath: string = path.join(dirs.src, entry.name);
     const outfileAbsolutePath: string = path.join(dirs.dist, outfileBasename);
 
-    // For some reason, somewhat rarely, some bookmarks are not successfully
-    // written to the "dist" directory. It definitely seems like an async issue,
-    // but I think this code is written correctly. I suppose it _could_ be an
-    // esbuild issue or an issue with the plugin.
+    // Each time this script is run, some bookmarks are not successfully written
+    // to the "dist" directory, even though this code appears to be correct.
+    // This seems to be a bug in the plugin:
+    //
+    // https://codeberg.org/reesericci/esbuild-plugin-bookmarklet/issues/3
     //
     // Additionally, the bookmarklet plugin does not seem to correctly support
     // multiple entrypoints. If the loop is omitted, `entryPoints` is set to
