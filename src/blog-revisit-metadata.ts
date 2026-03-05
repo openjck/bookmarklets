@@ -20,7 +20,7 @@ import BookmarkletError from "./errors/BookmarkletError.ts";
 import StepRunner, {
   SetNextStepNumberFunction,
 } from "./utils/classes/StepRunner.ts";
-import { alertOnError, log } from "./utils/general.ts";
+import { alertAboutMultipleSteps, alertOnError, log } from "./utils/general.ts";
 import * as dom from "./utils/dom.ts";
 import * as navigation from "./utils/navigation.ts";
 import * as blog from "./utils/blog.ts";
@@ -67,11 +67,6 @@ async function getViewerCount(): Promise<number> {
 /**
  * Explain the manual steps that must be taken to modify the title and tags.
  */
-// This function is unused for now, because I'm using the bookmarklet so
-// frequently that I don't need this reminder, but it will be enable again in
-// the future.
-//
-// deno-lint-ignore no-unused-vars
 function showInstructionsEditTitleAndTags(): void {
   alert(
     "Manual step: Modify the title and tags as desired.\n" +
@@ -242,19 +237,9 @@ function step1(setNextStepNumberFn: SetNextStepNumberFunction): void {
     );
   }
 
-  // TODO: Uncomment this when I'm not using it so consistently.
-  //
-  // At the time of this writing, I'm using this bookmarklet frequently enough
-  // that I don't need this reminder.
-  // alertAboutMultipleSteps();
-
+  alertAboutMultipleSteps();
   blog.insertTags();
-
-  // TODO: Uncomment this at some point. At the moment, I'm using the
-  // bookmarklet frequently enough that I don't need this reminder.
-  //
-  // showInstructionsEditTitleAndTags();
-
+  showInstructionsEditTitleAndTags();
   setNextStepNumberFn();
 }
 
