@@ -128,6 +128,25 @@ export function isBlogPostEditMetaPage(urlStr: string): boolean {
 }
 
 /**
+ * Return `true` if the provided URL is of the view page of an anonymous post.
+ *
+ * An anonymous post is a post which one can only access if they have the URL.
+ * That is, it's not linked from anywhere else. It's useful for working on
+ * drafts.
+ *
+ * @param urlStr - The URL to test.
+ *
+ * @returns `true` if the provided URL is the URL of the view page of an
+ *          anonymous WriteFreely post, otherwise `false`.
+ */
+export function isAnonymousPostViewPage(urlStr: string): boolean {
+  const url: URL = new URL(urlStr);
+
+  return url.href.startsWith(baseUrls.writeAs) &&
+    url.pathname.endsWith(".md");
+}
+
+/**
  * Insert all tags used on the blog at the bottom of the writing area.
  *
  * Precondition: This function must be run on the new post creation page, the
@@ -192,7 +211,10 @@ export async function insertTags(): Promise<void> {
  *          there is a title) or `null` (if there is no title).
  */
 export async function getTitle(): Promise<string | null> {
-  if (isBlogPostEditPage(window.location.href)) {
+  if (
+    isBlogPostEditPage(window.location.href) ||
+    isAnonymousPostEditPage(window.location.href)
+  ) {
     const writingArea: HTMLTextAreaElement = await getWritingArea();
     const writingAreaText = writingArea.value;
 
@@ -205,6 +227,16 @@ export async function getTitle(): Promise<string | null> {
     }
 
     return title;
+  } else if (isAnonymousPostViewPage(window.location.href)) {
+    const titleElement: HTMLHeadingElement = await dom.getElement<
+      HTMLHeadingElement
+    >("body#post article h2#title");
+
+    if (titleElement === null || titleElement.textContent === null) {
+      return null;
+    }
+
+    return titleElement.textContent;
   } else {
     const titleElement: HTMLHeadingElement = await dom.getElement<
       HTMLHeadingElement
@@ -335,14 +367,9 @@ export function navigateToEditPage(): void {
     baseUrls.blogWriteAs,
   );
 
-  // Whether the user is on the view page of an anonymous post.
-  //
-  // An anonymous post is a post which one can only access if they have the URL.
-  // That is, it's not linked from anywhere else. It's useful for working on
-  // drafts.
-  const atAnonymousPostUrl: boolean =
-    navigation.currentUrlStartsWith(baseUrls.writeAs) &&
-    window.location.pathname.endsWith(".md");
+  const atAnonymousPostUrl: boolean = isAnonymousPostViewPage(
+    window.location.href,
+  );
 
   if (atPublicFacingBlogPostUrl) {
     const writeAsUrl: string = window.location.href.replace(
