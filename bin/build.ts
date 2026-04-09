@@ -1,4 +1,5 @@
 import * as path from "@std/path";
+import { walk, WalkEntry } from "@std/fs/walk";
 
 import * as esbuild from "esbuild";
 import esbuildBookmarkletPlugin from "esbuildBookmarkletPlugin";
@@ -32,77 +33,24 @@ try {
 await Deno.mkdir(dirs.dist);
 
 const allowedExtensions: string[] = ["js", "ts"];
-const builds: Promise<esbuild.BuildResult<esbuild.BuildOptions>>[] = [];
 
-for await (const entry of Deno.readDir(dirs.src)) {
-  // There is a Deno API for getting the _parts_ of a filename (path.parse()),
-  // but I dislike it because, confusingly, the "name" property of a parsed path
-  // is different _but very similar to_ the "name" property of an entry. In
-  // other words, these two values would be different:
-  //
-  //   console.log(entry.name); // example.ts
-  //
-  //   const parsedEntry = path.parse(entry.name);
-  //   console.log(parsedEntry.name); // example
-  //
-  // I find that confusing, and I'm sure it would trip me up in the future, so
-  // I'm intentionally avoiding path.parse() here and getting filename parts in
-  // different ways.
+const entryPointWalkEntries: WalkEntry[] = await Array.fromAsync(
+  walk("src", { exts: allowedExtensions, maxDepth: 1 }),
+);
 
-  if (entry.isDirectory) {
-    continue;
-  }
+const entryPoints: string[] = entryPointWalkEntries.map((entry) => entry.path);
 
-  const entryExtensionMatches: RegExpMatchArray | null = entry.name.match(
-    /\.(?<extension>[^.]+)$/,
-  );
-
-  if (
-    entryExtensionMatches === null ||
-    entryExtensionMatches?.groups?.extension === undefined
-  ) {
-    throw new Error(
-      `Cannot determine the extension of the file named "${entry.name}"`,
-    );
-  }
-
-  const entryExtension: string = entryExtensionMatches.groups.extension;
-
-  if (allowedExtensions.includes(entryExtension)) {
-    const outfileBasename: string = entry.name.replace(/\.[^.]+$/, "") + ".js";
-
-    const infileAbsolutePath: string = path.join(dirs.src, entry.name);
-    const outfileAbsolutePath: string = path.join(dirs.dist, outfileBasename);
-
-    // Each time this script is run, some bookmarks are not successfully written
-    // to the "dist" directory, even though this code appears to be correct.
-    // This seems to be a bug in the plugin:
-    //
-    // https://codeberg.org/reesericci/esbuild-plugin-bookmarklet/issues/3
-    //
-    // Additionally, the bookmarklet plugin does not seem to correctly support
-    // multiple entrypoints. If the loop is omitted, `entryPoints` is set to
-    // an array of all source files, `outfile` is removed, and `outdir:
-    // dirs.dist` is set, only the first bookmarklet is written. That seems like
-    // it could be a bug in the plugin. I opened an issue about it:
-    //
-    // https://codeberg.org/reesericci/esbuild-plugin-bookmarklet/issues/1
-    builds.push(
-      esbuild.build({
-        entryPoints: [infileAbsolutePath],
-        outfile: outfileAbsolutePath,
-        bundle: true,
-        minify: true,
-        write: false,
-        format: "iife",
-        plugins: [esbuildBookmarkletPlugin],
-      }),
-    );
-  }
-}
+await esbuild.build({
+  entryPoints,
+  outdir: dirs.dist,
+  bundle: true,
+  minify: true,
+  write: false,
+  format: "iife",
+  plugins: [esbuildBookmarkletPlugin],
+});
 
 // This seems to be required, according to the esbuild documentation.
 //
 // https://esbuild.github.io/getting-started/#deno
-await Promise.all(builds);
 await esbuild.stop();

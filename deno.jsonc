@@ -10,8 +10,9 @@
     "dist/"
   ],
   "imports": {
+    "@std/fs/walk": "jsr:@std/fs@1.0.23/walk",
     "@std/path": "jsr:@std/path@1.1.4",
-    "esbuildBookmarkletPlugin": "https://deno.land/x/esbuild_plugin_bookmarklet@v1.0.0/mod.js",
+    "esbuildBookmarkletPlugin": "https://deno.land/x/esbuild_plugin_bookmarklet@v1.1.0/mod.js",
     "esbuild": "https://deno.land/x/esbuild@v0.27.2/mod.js"
   },
   "lint": {
